@@ -1,4 +1,4 @@
-# kafkaesque
+# Kafkaesque
 A test library which aim is to make the experience in testing Kafka application less painful
 
 The library allows to test the following use cases:
