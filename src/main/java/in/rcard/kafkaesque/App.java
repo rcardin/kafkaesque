@@ -1,4 +1,4 @@
-package in.rcard;
+package in.rcard.kafkaesque;
 
 /** Hello world! */
 public class App {
