@@ -7,7 +7,7 @@ Every help will be very useful :)
 
 The library allows to test the following use cases:
 
-## Use Case 1: The application produces some messages on a topic
+## Use Case 1: The Application Produces Some Messages on a Topic
 ```java
 kafkaEmbedded
   .withConsumer(topic, deserializer)
