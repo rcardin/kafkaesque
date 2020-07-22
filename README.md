@@ -1,4 +1,4 @@
-https://github.com/rcardin/kafkaesque/workflows/Kafkaesque/badge.svg
+![](https://github.com/rcardin/kafkaesque/workflows/Kafkaesque/badge.svg)
 
 # Kafkaesque
 _Kafkaesque_ is a test library whose aim is to make the experience in testing Kafka application less 
