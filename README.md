@@ -11,7 +11,7 @@ The library allows to test the following use cases:
 
 ## Use Case 1: The Application Produces Some Messages on a Topic
 ```java
-kafkaEmbedded
+kafkaesque
   .withConsumer(topic, deserializer)
   .waitingAtMost(10, SECONDS)
   .consume()
