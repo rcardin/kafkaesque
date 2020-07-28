@@ -17,6 +17,7 @@
   </properties>
 
   <modules>
+    <module>kafkaesque-core</module>
     <module>kafkaesque-spring-kafka</module>
   </modules>
 

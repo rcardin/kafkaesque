@@ -13,8 +13,8 @@ The library allows to test the following use cases:
 ```java
 kafkaEmbedded
   .withConsumer(topic, deserializer)
-  .consume()
   .waitingAtMost(10, SECONDS)
+  .consume()
   .recordsSize(3)
   .havingHeaders(headers -> {
     // Assertions on headers
