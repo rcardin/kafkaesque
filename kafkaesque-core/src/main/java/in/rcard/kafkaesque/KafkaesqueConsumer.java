@@ -7,11 +7,15 @@ import org.apache.kafka.common.serialization.Deserializer;
 public class KafkaesqueConsumer<T> {
   private final String topic;
   private final Deserializer<T> deserializer;
+  private final long interval;
+  private final TimeUnit timeUnit;
 
   KafkaesqueConsumer(String topic,
-      Deserializer<T> deserializer) {
+      Deserializer<T> deserializer, long interval, TimeUnit timeUnit) {
     this.topic = topic;
     this.deserializer = deserializer;
+    this.interval = interval;
+    this.timeUnit = timeUnit;
   }
   
   static class Builder<T> {
@@ -43,7 +47,7 @@ public class KafkaesqueConsumer<T> {
     KafkaesqueConsumer<T> expecting() {
       validateTopic(topic);
       validateDeserializer(deserializer);
-      return new KafkaesqueConsumer<T>(topic, deserializer);
+      return new KafkaesqueConsumer<T>(topic, deserializer, interval, timeUnit);
     }
   
     private void validateDeserializer(Deserializer<T> deserializer) {
