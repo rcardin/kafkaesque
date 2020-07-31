@@ -12,10 +12,12 @@ The library allows to test the following use cases:
 ## Use Case 1: The Application Produces Some Messages on a Topic
 ```java
 kafkaesque
-  .withConsumer(topic, deserializer)
+  .consume() // <-- create the builder KafkaesqueConsumerBuilder
+  .fromTopic("topic-name")
+  .withDeserializer(deserializer)
   .waitingAtMost(10, SECONDS)
-  .consume()
-  .recordsSize(3)
+  .expecting() // <-- build method that effectively consumes new KafkaesqueConsumer().poll()
+  .recordsSize(3) // <-- from here we use a ConsumedResult
   .havingHeaders(headers -> {
     // Assertions on headers
   })
@@ -27,4 +29,4 @@ kafkaesque
   });
 ```
 
-TODO
+More to come soon!
