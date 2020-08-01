@@ -14,12 +14,6 @@
 
   <name>Kafkaesque for Spring Kafka</name>
 
-  <dependencies>
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <scope>test</scope>
-    </dependency>
-  </dependencies>
+  <dependencies/>
 
 </project>
