@@ -17,11 +17,11 @@ public class Kafkaesque {
     // Empty body
   }
 
-  private static Kafkaesque newInstance() {
+  public static Kafkaesque newInstance() {
     return new Kafkaesque();
   }
   
-  private KafkaesqueConsumer.Builder consume() {
+  public KafkaesqueConsumer.Builder consume() {
     final Set<Class<? extends Builder>> buildersClass = findClassesImplementingBuilder();
     validateBuilderClasses(buildersClass);
     return buildersClass.stream()
@@ -69,7 +69,7 @@ public class Kafkaesque {
   private Stream<Method> findFactoryMethods(Class<? extends Builder> builderClass) {
     //noinspection unchecked
     return getAllMethods(
-        builderClass, withReturnTypeAssignableTo(KafkaesqueConsumer.class), withParametersCount(0))
+        builderClass, withReturnTypeAssignableTo(Builder.class), withParametersCount(0))
                .stream();
   }
 }
