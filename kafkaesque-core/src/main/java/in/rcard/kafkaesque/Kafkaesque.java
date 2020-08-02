@@ -31,6 +31,11 @@ public class Kafkaesque {
         .orElseThrow(() -> new AssertionError("TODO"));
   }
   
+  private Set<Class<? extends Builder>> findClassesImplementingBuilder() {
+    final Reflections reflections = new Reflections("in.rcard.kafkaesque");
+    return reflections.getSubTypesOf(Builder.class);
+  }
+  
   private void validateBuilderClasses(Set<Class<? extends Builder>> buildersClass) {
     verifyIfAnyBuilderClassWasFound(buildersClass);
     verifyIfMoreThanOneBuilderClassWasFound(buildersClass);
@@ -50,11 +55,6 @@ public class Kafkaesque {
     if (buildersClass == null || buildersClass.size() == 0) {
       throw new AssertionError("No implementation of a Kafkaesque consumer found");
     }
-  }
-  
-  private Set<Class<? extends Builder>> findClassesImplementingBuilder() {
-    final Reflections reflections = new Reflections("in.rcard.kafkaesque");
-    return reflections.getSubTypesOf(Builder.class);
   }
   
   private Builder invokeTheFactoryMethod(Method method) {
