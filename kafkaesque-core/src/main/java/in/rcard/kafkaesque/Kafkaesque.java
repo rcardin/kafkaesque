@@ -28,7 +28,7 @@ public class Kafkaesque {
         .flatMap(this::findFactoryMethods)
         .findFirst()
         .map(this::invokeTheFactoryMethod)
-        .orElseThrow(() -> new AssertionError("TODO"));
+        .orElseThrow(() -> new AssertionError("No method found to build a new instance of a Builder"));
   }
   
   private Set<Class<? extends Builder>> findClassesImplementingBuilder() {
@@ -53,7 +53,7 @@ public class Kafkaesque {
   
   private void verifyIfAnyBuilderClassWasFound(Set<Class<? extends Builder>> buildersClass) {
     if (buildersClass == null || buildersClass.size() == 0) {
-      throw new AssertionError("No implementation of a Kafkaesque consumer found");
+      throw new AssertionError("No implementation of a Kafkaesque consumer builder found");
     }
   }
   
@@ -62,7 +62,7 @@ public class Kafkaesque {
       final Object returnedObject = method.invoke(null);
       return (Builder) returnedObject;
     } catch (IllegalAccessException | InvocationTargetException e) {
-      throw new AssertionError("TODO");
+      throw new AssertionError("No static method found to build a new instance of the builder");
     }
   }
   
