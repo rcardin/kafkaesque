@@ -15,7 +15,7 @@ kafkaesque
   .usingBroker(embeddedBroker)
   .consume() // <-- create the builder KafkaesqueConsumerBuilder
   .fromTopic("topic-name")
-  .withDeserializer(deserializer)
+  .withDeserializers(keyDeserializer, valueDeserializer)
   .waitingAtMost(10, SECONDS)
   .expecting() // <-- build method that effectively consumes new KafkaesqueConsumer().poll()
   .recordsSize(3) // <-- from here we use a ConsumedResult
