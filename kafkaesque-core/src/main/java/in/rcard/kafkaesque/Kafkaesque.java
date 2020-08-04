@@ -11,17 +11,19 @@ import java.util.Set;
 import java.util.stream.Stream;
 import org.reflections.Reflections;
 
-public class Kafkaesque {
+public class Kafkaesque<K> {
 
-  private Kafkaesque() {
-    // Empty body
+  private final K embeddedKafka;
+  
+  private Kafkaesque(K embeddedKafka) {
+    this.embeddedKafka = embeddedKafka;
   }
 
-  public static Kafkaesque newInstance() {
-    return new Kafkaesque();
+  public static <K> Kafkaesque<K> newInstance(K embeddedKafka) {
+    return new Kafkaesque<>(embeddedKafka);
   }
   
-  public KafkaesqueConsumer.Builder consume() {
+  public KafkaesqueConsumer.Builder<?> consume() {
     final Set<Class<? extends Builder>> buildersClass = findClassesImplementingBuilder();
     validateBuilderClasses(buildersClass);
     return buildersClass.stream()

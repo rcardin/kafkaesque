@@ -12,6 +12,7 @@ The library allows to test the following use cases:
 ## Use Case 1: The Application Produces Some Messages on a Topic
 ```java
 kafkaesque
+  .usingBroker(embeddedBroker)
   .consume() // <-- create the builder KafkaesqueConsumerBuilder
   .fromTopic("topic-name")
   .withDeserializer(deserializer)

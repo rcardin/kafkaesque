@@ -4,12 +4,12 @@ import java.util.concurrent.TimeUnit;
 import org.apache.kafka.common.serialization.Deserializer;
 
 public interface KafkaesqueConsumer<T> {
-  interface Builder {
-    Builder fromTopic(String topic);
-    Builder withDeserializer(Deserializer<?> deserializer);
-    Builder waitingAtMost(long interval, TimeUnit unit);
+  interface Builder<T> {
+    Builder<T> fromTopic(String topic);
+    Builder<T> withDeserializer(Deserializer<T> deserializer);
+    Builder<T> waitingAtMost(long interval, TimeUnit unit);
     
-    KafkaesqueConsumer<?> expecting();
+    KafkaesqueConsumer<T> expecting();
   }
   
   ConsumedResults<T> poll();

@@ -26,6 +26,11 @@
   <dependencyManagement>
     <dependencies>
       <dependency>
+        <groupId>in.rcard</groupId>
+        <artifactId>kafkaesque-core</artifactId>
+        <version>0.0.1-SNAPSHOT</version>
+      </dependency>
+      <dependency>
         <groupId>org.apache.kafka</groupId>
         <artifactId>kafka-clients</artifactId>
         <version>${kafka.version}</version>
