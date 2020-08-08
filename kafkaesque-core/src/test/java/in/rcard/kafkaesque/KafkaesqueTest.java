@@ -13,38 +13,39 @@ class KafkaesqueTest {
   
   @Test
   void consumeShouldReturnAnInstanceOfAConcreteBuilder() {
-    final Builder<?> builder =
+    final Builder<String, String, String> builder =
         Kafkaesque
             .newInstance("embeddedKafka")
-            .consume();
+            .consume(String.class, String. class);
     assertThat(builder)
         .isNotNull()
         .isInstanceOf(TestBuilder.class);
   }
 
-  static class TestBuilder implements Builder<String> {
+  static class TestBuilder implements Builder<String, String, String> {
   
     public static TestBuilder newInstance() {
       return new TestBuilder();
     }
     
     @Override
-    public Builder<String> fromTopic(String topic) {
+    public Builder<String, String, String> fromTopic(String topic) {
       return null;
     }
   
     @Override
-    public Builder<String> withDeserializer(Deserializer<String> deserializer) {
+    public Builder<String, String, String> withDeserializers(
+        Deserializer<String> stringDeserializer, Deserializer<String> stringDeserializer2) {
       return null;
     }
   
     @Override
-    public Builder<String> waitingAtMost(long interval, TimeUnit unit) {
+    public Builder<String, String, String> waitingAtMost(long interval, TimeUnit unit) {
       return null;
     }
   
     @Override
-    public KafkaesqueConsumer<String> expecting() {
+    public KafkaesqueConsumer<String, String> expecting() {
       return null;
     }
   }
