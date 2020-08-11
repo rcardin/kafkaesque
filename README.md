@@ -25,7 +25,7 @@ kafkaesque
   .havingKeys(keys -> {
     // Assertions on keys
   })
-  .havingPayloads§(payloads -> {
+  .havingPayloads(payloads -> {
     // Asserions on payloads
   });
 ```

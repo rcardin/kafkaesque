@@ -36,7 +36,7 @@ public class SpringKafkaesqueConsumer<Key, Value> implements KafkaesqueConsumer<
     var consumerProps =
         KafkaTestUtils.consumerProps("kafkaesqueConsumer", "false", embeddedKafkaBroker);
     var cf =
-        new DefaultKafkaConsumerFactory<Key, Value>(
+        new DefaultKafkaConsumerFactory<>(
             consumerProps, keyDeserializer, valueDeserializer);
     var containerProperties = new ContainerProperties(topic);
     container = new KafkaMessageListenerContainer<>(cf, containerProperties);
@@ -49,7 +49,7 @@ public class SpringKafkaesqueConsumer<Key, Value> implements KafkaesqueConsumer<
   
   /**
    * Consumes the messages in the topic. After the the read operation, the consumer remains in a
-   * closed state.
+   * closed state and cannot be used anymore.
    * @return Read messages
    */
   public ConsumedResults<Key, Value> poll() {
