@@ -20,7 +20,7 @@ public class ConsumedResults<Key, Value> {
   private final Collection<ConsumerRecord<Key, Value>> consumerRecords;
   private final List<Headers> headersList;
   private final List<Key> keysList;
-  private List<Value> valuesList;
+  private final List<Value> valuesList;
   
   ConsumedResults(Collection<ConsumerRecord<Key, Value>> consumerRecords) {
     this.consumerRecords = consumerRecords;
