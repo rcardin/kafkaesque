@@ -6,6 +6,9 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.header.Headers;
+import org.hamcrest.Description;
+import org.hamcrest.Matcher;
+import org.hamcrest.StringDescription;
 
 /**
  * Allows to test properties on the messages consumed by a {@link KafkaesqueConsumer}.
@@ -15,9 +18,15 @@ import org.apache.kafka.common.header.Headers;
 public class ConsumedResults<Key, Value> {
 
   private final Collection<ConsumerRecord<Key, Value>> consumerRecords;
-
+  private final List<Headers> headersList;
+  private final List<Key> keysList;
+  private List<Value> valuesList;
+  
   ConsumedResults(Collection<ConsumerRecord<Key, Value>> consumerRecords) {
     this.consumerRecords = consumerRecords;
+    this.headersList = consumerRecords.stream().map(ConsumerRecord::headers).collect(Collectors.toList());
+    this.keysList = consumerRecords.stream().map(ConsumerRecord::key).collect(Collectors.toList());
+    this.valuesList = consumerRecords.stream().map(ConsumerRecord::value).collect(Collectors.toList());
   }
 
   /**
@@ -43,8 +52,6 @@ public class ConsumedResults<Key, Value> {
    * @param headersConsumer Code testing the desired properties
    */
   public ConsumedResults<Key, Value> havingHeaders(Consumer<List<Headers>> headersConsumer) {
-    var headersList =
-        consumerRecords.stream().map(ConsumerRecord::headers).collect(Collectors.toList());
     headersConsumer.accept(headersList);
     return this;
   }
@@ -56,7 +63,6 @@ public class ConsumedResults<Key, Value> {
    * @param keysConsumer Code testing the desired properties
    */
   public ConsumedResults<Key, Value> havingKeys(Consumer<List<Key>> keysConsumer) {
-    var keysList = consumerRecords.stream().map(ConsumerRecord::key).collect(Collectors.toList());
     keysConsumer.accept(keysList);
     return this;
   }
@@ -68,9 +74,29 @@ public class ConsumedResults<Key, Value> {
    * @param valuesConsumer Code testing the desired properties
    */
   public ConsumedResults<Key, Value> havingPayloads(Consumer<List<Value>> valuesConsumer) {
-    var valuesList =
-        consumerRecords.stream().map(ConsumerRecord::value).collect(Collectors.toList());
     valuesConsumer.accept(valuesList);
     return this;
+  }
+  
+  /**
+   * Verifies if the list of values matches the given conditions.
+   * @param matcher Condition to satisfy
+   */
+  public ConsumedResults<Key, Value> assertingThatPayloads(Matcher<? super List<Value>> matcher) {
+    final boolean matched = matcher.matches(valuesList);
+    if (!matched) {
+      throw new AssertionError(getMismatchMessage(valuesList, matcher));
+    }
+    return this;
+  }
+  
+  // XXX Revision of a similar method in the awaitility library
+  private String getMismatchMessage(List<Value> values, Matcher<? super List<Value>> matcher) {
+    Description mismatchDescription = new StringDescription();
+    matcher.describeMismatch(values, mismatchDescription);
+    if (mismatchDescription.toString() != null && mismatchDescription.toString().isEmpty()) {
+      mismatchDescription.appendText("was ").appendValue(values);
+    }
+    return String.format("%s expected but %s", values, mismatchDescription);
   }
 }
