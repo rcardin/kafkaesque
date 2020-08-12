@@ -2,6 +2,7 @@ package in.rcard.kafkaesque;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -54,7 +55,7 @@ public class SpringKafkaesqueConsumer<Key, Value> implements KafkaesqueConsumer<
    */
   public ConsumedResults<Key, Value> poll() {
     try {
-      final Collection<ConsumerRecord<Key, Value>> readMessages = new ArrayList<>();
+      final List<ConsumerRecord<Key, Value>> readMessages = new ArrayList<>();
       Awaitility.await()
           .atMost(interval, timeUnit)
           .until(() -> areNewMessagesRead(readMessages));
@@ -65,7 +66,7 @@ public class SpringKafkaesqueConsumer<Key, Value> implements KafkaesqueConsumer<
     }
   }
   
-  private Boolean areNewMessagesRead(Collection<ConsumerRecord<Key, Value>> readMessages) {
+  private Boolean areNewMessagesRead(List<ConsumerRecord<Key, Value>> readMessages) {
     final int priorSize = readMessages.size();
     records.drainTo(readMessages);
     return readMessages.size() == priorSize;

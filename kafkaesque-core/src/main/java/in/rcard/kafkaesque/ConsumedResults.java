@@ -1,6 +1,5 @@
 package in.rcard.kafkaesque;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -12,21 +11,24 @@ import org.hamcrest.StringDescription;
 
 /**
  * Allows to test properties on the messages consumed by a {@link KafkaesqueConsumer}.
+ *
  * @param <Key> The type of the messages' keys
  * @param <Value> The type of the messages' values
  */
 public class ConsumedResults<Key, Value> {
 
-  private final Collection<ConsumerRecord<Key, Value>> consumerRecords;
+  private final List<ConsumerRecord<Key, Value>> consumerRecords;
   private final List<Headers> headersList;
   private final List<Key> keysList;
   private final List<Value> valuesList;
-  
-  ConsumedResults(Collection<ConsumerRecord<Key, Value>> consumerRecords) {
+
+  ConsumedResults(List<ConsumerRecord<Key, Value>> consumerRecords) {
     this.consumerRecords = consumerRecords;
-    this.headersList = consumerRecords.stream().map(ConsumerRecord::headers).collect(Collectors.toList());
+    this.headersList =
+        consumerRecords.stream().map(ConsumerRecord::headers).collect(Collectors.toList());
     this.keysList = consumerRecords.stream().map(ConsumerRecord::key).collect(Collectors.toList());
-    this.valuesList = consumerRecords.stream().map(ConsumerRecord::value).collect(Collectors.toList());
+    this.valuesList =
+        consumerRecords.stream().map(ConsumerRecord::value).collect(Collectors.toList());
   }
 
   /**
@@ -77,9 +79,22 @@ public class ConsumedResults<Key, Value> {
     valuesConsumer.accept(valuesList);
     return this;
   }
-  
+
+  /**
+   * Evaluates the list of records to satisfy the given properties. Any kind of testing framework
+   * can be used inside {@code recordsConsumer}.
+   *
+   * @param recordsConsumer Code testing the desired properties
+   */
+  public ConsumedResults<Key, Value> havingConsumerRecords(
+      Consumer<List<ConsumerRecord<Key, Value>>> recordsConsumer) {
+    recordsConsumer.accept(consumerRecords);
+    return this;
+  }
+
   /**
    * Verifies if the list of values matches the given conditions.
+   *
    * @param matcher Condition to satisfy
    */
   public ConsumedResults<Key, Value> assertingThatPayloads(Matcher<? super List<Value>> matcher) {
@@ -89,7 +104,7 @@ public class ConsumedResults<Key, Value> {
     }
     return this;
   }
-  
+
   // XXX Revision of a similar method in the awaitility library
   private String getMismatchMessage(List<Value> values, Matcher<? super List<Value>> matcher) {
     Description mismatchDescription = new StringDescription();
