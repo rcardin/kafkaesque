@@ -18,7 +18,7 @@ kafkaesque
   .withDeserializers(keyDeserializer, valueDeserializer)
   .waitingAtMost(10, SECONDS)
   .expecting() // <-- build method that effectively consumes new KafkaesqueConsumer().poll()
-  .recordsSize(3) // <-- from here we use a ConsumedResult
+  .hasRecordsSize(3) // <-- from here we use a ConsumedResult
   .havingHeaders(headers -> {
     // Assertions on headers
   })

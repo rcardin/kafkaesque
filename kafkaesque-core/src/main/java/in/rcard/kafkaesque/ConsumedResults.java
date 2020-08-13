@@ -37,7 +37,7 @@ public class ConsumedResults<Key, Value> {
    *
    * @param size The expected number of messages
    */
-  public ConsumedResults<Key, Value> recordsSize(long size) {
+  public ConsumedResults<Key, Value> hasRecordsSize(long size) {
     if (consumerRecords.size() != size) {
       throw new AssertionError(
           String.format(
@@ -113,7 +113,7 @@ public class ConsumedResults<Key, Value> {
     if (mismatchDescription.toString() != null && mismatchDescription.toString().isEmpty()) {
       mismatchDescription.appendText("was ").appendValue(values);
     }
-    return String.format("%s expected but %s", values, mismatchDescription);
+    return String.format("Expected %s but %s", matcher, mismatchDescription);
   }
   
   @Override
