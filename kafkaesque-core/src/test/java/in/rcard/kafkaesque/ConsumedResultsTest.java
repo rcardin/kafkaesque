@@ -33,13 +33,13 @@ class ConsumedResultsTest {
   }
 
   @Test
-  void hasRecordsSizeShouldReturnTheCurrentObjectIfTheGivenSizeIsTheSizeOfTheInternalList() {
-    assertThat(consumedResults.hasRecordsSize(1)).isEqualTo(consumedResults);
+  void havingRecordsSizeShouldReturnTheCurrentObjectIfTheGivenSizeIsTheSizeOfTheInternalList() {
+    assertThat(consumedResults.havingRecordsSize(1)).isEqualTo(consumedResults);
   }
 
   @Test
-  void hasRecordsSizeShouldThrownAnAssertionErrorIfTheSizeOfTheInternalListIsNotAsExpected() {
-    assertThatThrownBy(() -> consumedResults.hasRecordsSize(2))
+  void havingRecordsSizeShouldThrownAnAssertionErrorIfTheSizeOfTheInternalListIsNotAsExpected() {
+    assertThatThrownBy(() -> consumedResults.havingRecordsSize(2))
         .isInstanceOf(AssertionError.class)
         .hasMessage(
             "The desired size of consumed messages 2 is not equal to the effective "

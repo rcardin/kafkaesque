@@ -37,7 +37,7 @@ public class ConsumedResults<Key, Value> {
    *
    * @param size The expected number of messages
    */
-  public ConsumedResults<Key, Value> hasRecordsSize(long size) {
+  public ConsumedResults<Key, Value> havingRecordsSize(long size) {
     if (consumerRecords.size() != size) {
       throw new AssertionError(
           String.format(
