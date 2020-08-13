@@ -1,6 +1,7 @@
 package in.rcard.kafkaesque;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -113,5 +114,25 @@ public class ConsumedResults<Key, Value> {
       mismatchDescription.appendText("was ").appendValue(values);
     }
     return String.format("%s expected but %s", values, mismatchDescription);
+  }
+  
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    ConsumedResults<?, ?> that = (ConsumedResults<?, ?>) o;
+    return Objects.equals(consumerRecords, that.consumerRecords) &&
+               Objects.equals(headersList, that.headersList) &&
+               Objects.equals(keysList, that.keysList) &&
+               Objects.equals(valuesList, that.valuesList);
+  }
+  
+  @Override
+  public int hashCode() {
+    return Objects.hash(consumerRecords, headersList, keysList, valuesList);
   }
 }
