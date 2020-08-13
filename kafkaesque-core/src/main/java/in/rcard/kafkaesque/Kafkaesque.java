@@ -1,6 +1,7 @@
 package in.rcard.kafkaesque;
 
 import static org.reflections.ReflectionUtils.getAllMethods;
+import static org.reflections.ReflectionUtils.withName;
 import static org.reflections.ReflectionUtils.withParametersCount;
 import static org.reflections.ReflectionUtils.withReturnTypeAssignableTo;
 
@@ -64,14 +65,17 @@ public class Kafkaesque<K> {
   private Stream<Method> findFactoryMethods(Class<? extends Builder> builderClass) {
     //noinspection unchecked
     return getAllMethods(
-        builderClass, withReturnTypeAssignableTo(Builder.class), withParametersCount(0))
+        builderClass,
+        withReturnTypeAssignableTo(Builder.class),
+        withParametersCount(1),
+        withName("newInstance"))
         .stream();
   }
 
   private <Key, Value> Builder<K, Key, Value> invokeTheFactoryMethod(
       Method method, Class<Key> keyType, Class<Value> valueType) {
     try {
-      final Object returnedObject = method.invoke(null);
+      final Object returnedObject = method.invoke(null, embeddedKafka);
       //noinspection unchecked
       return (Builder<K, Key, Value>) returnedObject;
     } catch (IllegalAccessException | InvocationTargetException e) {

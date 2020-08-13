@@ -22,9 +22,9 @@ class KafkaesqueTest {
         .isInstanceOf(TestBuilder.class);
   }
 
-  static class TestBuilder implements Builder<String, String, String> {
+  private static class TestBuilder implements Builder<String, String, String> {
   
-    public static TestBuilder newInstance() {
+    public static TestBuilder newInstance(String embeddedBroker) {
       return new TestBuilder();
     }
     
