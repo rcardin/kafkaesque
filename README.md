@@ -10,7 +10,7 @@ Every help will be very useful :)
 The library allows to test the following use cases:
 
 ## Use Case 1: The Application Produces Some Messages on a Topic
-```java
+```
 kafkaesque
   .usingBroker(embeddedBroker)
   .consume() // <-- create the builder KafkaesqueConsumerBuilder
@@ -30,4 +30,24 @@ kafkaesque
   });
 ```
 
-More to come soon!
+## Use Case 2: The Application Consumes Some Messages from a Topic
+
+```
+kafkaesque
+  .usingBroker(embeddedBroker)
+  .produce() // <-- create the builder KafkaesqueProducerBuilder
+  .toTopic("topic-name")
+  .withDeserializers(keyDeserializer, valueDeserializer)
+  .messages( /* Some list of messages */)
+  .waitingAtMostForEachAck(100, MILLISECONDS) // Waiting time for each ack from the broker
+  .waitingForTheConsumerAtMost(10, SECONDS) // Waiting time for the consumer to read one / all the messages
+  .expecting() // build method that effectively create a producer
+  .assertingAfterEach(message -> { // <- This method produce a message and asserts imme
+    // Assertions on the consumer process after the sending of each message
+  })
+  .assertingAfterAll(messages -> {
+    // Assertions on the consumer process after the sending of all the messages
+  });
+```
+
+More to come!
