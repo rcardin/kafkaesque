@@ -27,7 +27,11 @@ kafkaesque
   })
   .havingPayloads(payloads -> {
     // Asserions on payloads
-  });
+  })
+  .havingConsumerRecords(records -> {
+    // Assertions on the full list of ConsumerRecord<Key, Value>
+  })
+  .assertingThatPayloads(contains("42")); // Uses Hamcrest.Matchers on collections :)
 ```
 
 ## Use Case 2: The Application Consumes Some Messages from a Topic
