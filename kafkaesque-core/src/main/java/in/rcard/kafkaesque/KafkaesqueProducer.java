@@ -1,5 +1,7 @@
 package in.rcard.kafkaesque;
 
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -14,15 +16,13 @@ import org.awaitility.Awaitility;
 
 public final class KafkaesqueProducer<Key, Value> {
 
-  private final long forEachAckInterval = 200L;
-  private final TimeUnit forEachAckTimeUnit = TimeUnit.MILLISECONDS;
+  private final Duration forEachAckDuration = Duration.of(200L, ChronoUnit.MILLIS);
 
-  private final long forAllAcksInterval = 1L;
-  private final TimeUnit forAllAcksTimeUnit = TimeUnit.SECONDS;
-  
-  private final long waitForConsumerInterval = 500L;
+  private final Duration forAllAcksDuration = Duration.of(1L, ChronoUnit.SECONDS);
+
+  private final Duration waitForConsumerDuration = Duration.of(500L, ChronoUnit.MILLIS);
   private final TimeUnit waitForConsumerTimeUnit = TimeUnit.MILLISECONDS;
-  
+
   private final List<ProducerRecord<Key, Value>> records;
 
   private final KafkaesqueProducerDelegate<Key, Value> producerDelegate;
@@ -39,12 +39,14 @@ public final class KafkaesqueProducer<Key, Value> {
     records.forEach(
         record -> {
           try {
-            producerDelegate.sendRecord(record).get(forEachAckInterval, forEachAckTimeUnit);
+            producerDelegate
+                .sendRecord(record)
+                .get(forEachAckDuration.toMillis(), TimeUnit.MILLISECONDS);
           } catch (InterruptedException | ExecutionException | TimeoutException e) {
             throw new AssertionError(e);
           }
           Awaitility.await()
-              .atMost(waitForConsumerInterval, waitForConsumerTimeUnit)
+              .atMost(waitForConsumerDuration)
               .untilAsserted(() -> messageConsumer.accept(record));
         });
     return this;
@@ -56,35 +58,36 @@ public final class KafkaesqueProducer<Key, Value> {
         records.stream().map(producerDelegate::sendRecord).collect(Collectors.toList());
     try {
       CompletableFuture.allOf(futures.toArray(CompletableFuture[]::new))
-          .get(forAllAcksInterval, forAllAcksTimeUnit);
+          .get(forAllAcksDuration.toMillis(), TimeUnit.MILLISECONDS);
     } catch (InterruptedException | ExecutionException | TimeoutException e) {
       throw new AssertionError(e);
     }
     Awaitility.await()
-        .atMost(waitForConsumerInterval, waitForConsumerTimeUnit)
+        .atMost(waitForConsumerDuration)
         .untilAsserted(() -> messagesConsumer.accept(records));
     return this;
   }
-  
+
   interface Builder<K, Key, Value> {
     Builder<K, Key, Value> toTopic(String topic);
-    
+
     Builder<K, Key, Value> withDeserializers(
         Deserializer<Key> keyDeserializer, Deserializer<Value> valueDeserializer);
-    
+
     Builder<K, Key, Value> messages(List<ProducerRecord<Key, Value>> records);
-    
+
     Builder<K, Key, Value> waitingAtMostForEachAck(long interval, TimeUnit unit);
-    
+
     Builder<K, Key, Value> waitingAtMostForAllAcks(long interval, TimeUnit unit);
-    
+
     Builder<K, Key, Value> waitingForTheConsumerAtMost(long interval, TimeUnit unit);
-    
+
     KafkaesqueProducer<Key, Value> expecting();
   }
-  
+
   /**
    * Sends the record to the embedded Kafka broker.
+   *
    * @param <Key> The type of the message's key
    * @param <Value> The type of the message's value
    */
