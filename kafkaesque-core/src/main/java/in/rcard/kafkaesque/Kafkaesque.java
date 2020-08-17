@@ -14,8 +14,9 @@ public interface Kafkaesque {
 
   // TODO There is a problem with the first type parameter. Try to resolve
   <Key, Value> KafkaesqueConsumer.Builder<?, Key, Value> consume();
+
   <Key, Value> KafkaesqueProducer.Builder<?, Key, Value> produce();
-  
+
   static <K> Kafkaesque newInstance(K embeddedKafka) {
     final Set<Class<? extends Kafkaesque>> kafkaesqueClasses = findClassesImplementingKafkaesque();
     validateKafkaesqueClasses(kafkaesqueClasses);
@@ -23,27 +24,31 @@ public interface Kafkaesque {
         .flatMap(clazz -> findConstructor(embeddedKafka, clazz))
         .findFirst()
         .map(ctor -> buildNewKafkaesqueInstance(embeddedKafka, ctor))
-        .orElseThrow(() -> new AssertionError("No method found to build a new instance of the Kafkaesque class"));
+        .orElseThrow(Kafkaesque::makeNoConstructorFoundAssertionError);
   }
-  
+
+  static AssertionError makeNoConstructorFoundAssertionError() {
+    return new AssertionError("No method found to build a new instance of the Kafkaesque class");
+  }
+
   static <K> Kafkaesque buildNewKafkaesqueInstance(K embeddedKafka, Constructor<?> ctor) {
     final Object kafkaesque;
     try {
       kafkaesque = ctor.newInstance(embeddedKafka);
     } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
-      throw new AssertionError("There is no possible to instantiate a new object of type Kafkaesque", e);
+      throw new AssertionError(
+          "There is no possible to instantiate a new object of type Kafkaesque", e);
     }
     return (Kafkaesque) kafkaesque;
   }
-  
-  
+
   @SuppressWarnings("rawtypes")
-  static <K> Stream<Constructor> findConstructor(K embeddedKafka,
-      Class<? extends Kafkaesque> clazz) {
+  static <K> Stream<Constructor> findConstructor(
+      K embeddedKafka, Class<? extends Kafkaesque> clazz) {
     //noinspection unchecked
-    return getAllConstructors(clazz,
-        withParameters(embeddedKafka.getClass()),
-            withParametersCount(1)).stream();
+    return getAllConstructors(
+        clazz, withParameters(embeddedKafka.getClass()), withParametersCount(1))
+        .stream();
   }
 
   private static Set<Class<? extends Kafkaesque>> findClassesImplementingKafkaesque() {
@@ -51,17 +56,19 @@ public interface Kafkaesque {
     return reflections.getSubTypesOf(Kafkaesque.class);
   }
 
-  private static void validateKafkaesqueClasses(Set<Class<? extends Kafkaesque>> kafkaesqueClasses) {
+  private static void validateKafkaesqueClasses(
+      Set<Class<? extends Kafkaesque>> kafkaesqueClasses) {
     verifyIfAnyKafkaesqueClassWasFound(kafkaesqueClasses);
     verifyIfMoreThanOneKafkaesqueClassWasFound(kafkaesqueClasses);
   }
 
-  private static void verifyIfAnyKafkaesqueClassWasFound(Set<Class<? extends Kafkaesque>> kafkaesqueClasses) {
+  private static void verifyIfAnyKafkaesqueClassWasFound(
+      Set<Class<? extends Kafkaesque>> kafkaesqueClasses) {
     if (kafkaesqueClasses == null || kafkaesqueClasses.size() == 0) {
       throw new AssertionError("No implementation of a Kafkaesque class was found");
     }
   }
-  
+
   private static void verifyIfMoreThanOneKafkaesqueClassWasFound(
       Set<Class<? extends Kafkaesque>> kafkaesqueClasses) {
     if (kafkaesqueClasses.size() > 1) {
