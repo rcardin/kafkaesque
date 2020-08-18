@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
 import org.apache.kafka.common.serialization.Deserializer;
+import org.apache.kafka.common.serialization.Serializer;
 import org.awaitility.Awaitility;
 
 public final class KafkaesqueProducer<Key, Value> {
@@ -71,8 +72,8 @@ public final class KafkaesqueProducer<Key, Value> {
   interface Builder<K, Key, Value> {
     Builder<K, Key, Value> toTopic(String topic);
 
-    Builder<K, Key, Value> withDeserializers(
-        Deserializer<Key> keyDeserializer, Deserializer<Value> valueDeserializer);
+    Builder<K, Key, Value> withSerializers(
+        Serializer<Key> keySerializer, Serializer<Value> valueSerializer);
 
     Builder<K, Key, Value> messages(List<ProducerRecord<Key, Value>> records);
 

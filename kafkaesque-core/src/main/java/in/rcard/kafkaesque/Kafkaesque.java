@@ -13,11 +13,11 @@ import org.reflections.Reflections;
 public interface Kafkaesque {
 
   // TODO There is a problem with the first type parameter. Try to resolve
-  <Key, Value> KafkaesqueConsumer.Builder<?, Key, Value> consume();
+  <Key, Value> KafkaesqueConsumer.Builder<Key, Value> consume();
 
   <Key, Value> KafkaesqueProducer.Builder<?, Key, Value> produce();
 
-  static <K> Kafkaesque newInstance(K embeddedKafka) {
+  static <K> Kafkaesque usingBroker(K embeddedKafka) {
     final Set<Class<? extends Kafkaesque>> kafkaesqueClasses = findClassesImplementingKafkaesque();
     validateKafkaesqueClasses(kafkaesqueClasses);
     return kafkaesqueClasses.stream()

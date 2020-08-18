@@ -3,49 +3,33 @@ package in.rcard.kafkaesque;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import in.rcard.kafkaesque.KafkaesqueConsumer.Builder;
-import java.util.concurrent.TimeUnit;
-import org.apache.kafka.common.serialization.Deserializer;
 import org.junit.jupiter.api.Test;
 
 // XXX There is a big deal with the code structured this way. We can test only the happy path :(
 //     Try to rethink the Kafkaesque type to allow a complete testing strategy.
 class KafkaesqueTest {
-  
+
   @Test
-  void consumeShouldReturnAnInstanceOfAConcreteBuilder() {
-    final Builder<String, String, String> builder =
-        Kafkaesque
-            .newInstance("embeddedKafka")
-            .consume(String.class, String. class);
-    assertThat(builder)
+  void usingBrokerShouldReturnAnInstanceOfAConcreteKafkaesque() {
+    final Kafkaesque kafkaesque = Kafkaesque.usingBroker("broker");
+    assertThat(kafkaesque)
         .isNotNull()
-        .isInstanceOf(TestBuilder.class);
+        .isInstanceOf(TestKafkaesque.class);
   }
 
-  private static class TestBuilder implements Builder<String, String, String> {
+  private static class TestKafkaesque implements Kafkaesque {
   
-    public static TestBuilder newInstance(String embeddedBroker) {
-      return new TestBuilder();
+    public TestKafkaesque(String broker) {
+      // Empty body
     }
-    
+  
     @Override
-    public Builder<String, String, String> fromTopic(String topic) {
+    public <Key, Value> Builder<Key, Value> consume() {
       return null;
     }
   
     @Override
-    public Builder<String, String, String> withDeserializers(
-        Deserializer<String> stringDeserializer, Deserializer<String> stringDeserializer2) {
-      return null;
-    }
-  
-    @Override
-    public Builder<String, String, String> waitingAtMost(long interval, TimeUnit unit) {
-      return null;
-    }
-  
-    @Override
-    public KafkaesqueConsumer<String, String> expecting() {
+    public <Key, Value> KafkaesqueProducer.Builder<?, Key, Value> produce() {
       return null;
     }
   }

@@ -11,7 +11,7 @@ The library allows to test the following use cases:
 
 ## Use Case 1: The Application Produces Some Messages on a Topic
 ```
-kafkaesque
+Kafkaesque
   .usingBroker(embeddedBroker)
   .consume() // <-- create the builder KafkaesqueConsumerBuilder
   .fromTopic("topic-name")
@@ -31,13 +31,14 @@ kafkaesque
   .havingConsumerRecords(records -> {
     // Assertions on the full list of ConsumerRecord<Key, Value>
   })
-  .assertingThatPayloads(contains("42")); // Uses Hamcrest.Matchers on collections :)
+  .assertingThatPayloads(contains("42")) // Uses Hamcrest.Matchers on collections :)
+  .andCloseConsumer();
 ```
 
 ## Use Case 2: The Application Consumes Some Messages from a Topic
 
 ```
-kafkaesque
+Kafkaesque
   .usingBroker(embeddedBroker)
   .produce() // <-- create the builder KafkaesqueProducerBuilder
   .toTopic("topic-name")
