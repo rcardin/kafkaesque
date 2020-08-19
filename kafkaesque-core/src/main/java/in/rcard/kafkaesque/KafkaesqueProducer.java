@@ -22,7 +22,6 @@ public final class KafkaesqueProducer<Key, Value> {
   private final Duration forAllAcksDuration = Duration.of(1L, ChronoUnit.SECONDS);
 
   private final Duration waitForConsumerDuration = Duration.of(500L, ChronoUnit.MILLIS);
-  private final TimeUnit waitForConsumerTimeUnit = TimeUnit.MILLISECONDS;
 
   private final List<ProducerRecord<Key, Value>> records;
 
@@ -69,21 +68,82 @@ public final class KafkaesqueProducer<Key, Value> {
     return this;
   }
 
-  interface Builder<K, Key, Value> {
-    Builder<K, Key, Value> toTopic(String topic);
+  static class Builder<Key, Value> {
+  
+    private String topic;
+    private Serializer<Key> keySerializer;
+    private Serializer<Value> valueSerializer;
+    private List<ProducerRecord<Key, Value>> records;
+    private long waitingAtMostForEachAckInterval;
+    private TimeUnit waitingAtMostForEachAckTimeUnit;
+    private long waitingAtMostForAllAcksInteval;
+    private TimeUnit waitingAtMostForAllAcksTimeUnit;
+    private long waitingForTheConsumerAtMostInterval;
+    private TimeUnit waitingForTheConsumerAtMostTimeUnit;
+  
+    Builder<Key, Value> toTopic(String topic) {
+      this.topic = topic;
+      return this;
+    }
 
-    Builder<K, Key, Value> withSerializers(
-        Serializer<Key> keySerializer, Serializer<Value> valueSerializer);
+    Builder<Key, Value> withSerializers(
+        Serializer<Key> keySerializer, Serializer<Value> valueSerializer) {
+      this.keySerializer = keySerializer;
+      this.valueSerializer = valueSerializer;
+      return this;
+    }
 
-    Builder<K, Key, Value> messages(List<ProducerRecord<Key, Value>> records);
+    Builder<Key, Value> messages(List<ProducerRecord<Key, Value>> records) {
+      this.records = records;
+      return this;
+    }
 
-    Builder<K, Key, Value> waitingAtMostForEachAck(long interval, TimeUnit unit);
+    Builder<Key, Value> waitingAtMostForEachAck(long interval, TimeUnit unit) {
+      this.waitingAtMostForEachAckInterval = interval;
+      this.waitingAtMostForEachAckTimeUnit = unit;
+      return this;
+    }
 
-    Builder<K, Key, Value> waitingAtMostForAllAcks(long interval, TimeUnit unit);
+    Builder<Key, Value> waitingAtMostForAllAcks(long interval, TimeUnit unit) {
+      this.waitingAtMostForAllAcksInteval = interval;
+      this.waitingAtMostForAllAcksTimeUnit = unit;
+      return this;
+    }
 
-    Builder<K, Key, Value> waitingForTheConsumerAtMost(long interval, TimeUnit unit);
+    Builder<Key, Value> waitingForTheConsumerAtMost(long interval, TimeUnit unit) {
+      this.waitingForTheConsumerAtMostInterval = interval;
+      this.waitingForTheConsumerAtMostTimeUnit = unit;
+      return this;
+    }
 
-    KafkaesqueProducer<Key, Value> expecting();
+    KafkaesqueProducer<Key, Value> expecting() {
+      validateInputs();
+      return null;
+    }
+  
+    private void validateInputs() {
+      validateTopic();
+      validateRecords();
+      validateSerializers();
+    }
+  
+    private void validateTopic() {
+      if (topic == null || topic.isBlank()) {
+        throw new AssertionError("The topic name cannot be empty");
+      }
+    }
+  
+    private void validateRecords() {
+      if (records == null || records.isEmpty()) {
+        throw new AssertionError("The list of records to send cannot be empty");
+      }
+    }
+  
+    private void validateSerializers() {
+      if (keySerializer == null || valueSerializer == null) {
+        throw new AssertionError("The serializers cannot be null");
+      }
+    }
   }
 
   /**
