@@ -1,27 +1,27 @@
 package in.rcard.kafkaesque;
 
+import in.rcard.kafkaesque.KafkaesqueProducer.KafkaesqueProducerDelegate.DelegateCreationInfo;
 import java.time.Duration;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
-import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.serialization.Serializer;
 import org.awaitility.Awaitility;
 
 public final class KafkaesqueProducer<Key, Value> {
 
-  private final Duration forEachAckDuration = Duration.of(200L, ChronoUnit.MILLIS);
+  private final Duration forEachAckDuration;
 
-  private final Duration forAllAcksDuration = Duration.of(1L, ChronoUnit.SECONDS);
+  private final Duration forAllAcksDuration;
 
-  private final Duration waitForConsumerDuration = Duration.of(500L, ChronoUnit.MILLIS);
+  private final Duration waitForConsumerDuration;
 
   private final List<ProducerRecord<Key, Value>> records;
 
@@ -29,9 +29,15 @@ public final class KafkaesqueProducer<Key, Value> {
 
   KafkaesqueProducer(
       List<ProducerRecord<Key, Value>> records,
-      KafkaesqueProducerDelegate<Key, Value> producerDelegate) {
+      KafkaesqueProducerDelegate<Key, Value> producerDelegate,
+      Duration forEachAckDuration,
+      Duration forAllAcksDuration,
+      Duration waitForConsumerDuration) {
     this.records = records;
     this.producerDelegate = producerDelegate;
+    this.forEachAckDuration = forEachAckDuration;
+    this.forAllAcksDuration = forAllAcksDuration;
+    this.waitForConsumerDuration = waitForConsumerDuration;
   }
 
   KafkaesqueProducer<Key, Value> assertingAfterEach(
@@ -69,18 +75,36 @@ public final class KafkaesqueProducer<Key, Value> {
   }
 
   static class Builder<Key, Value> {
-  
+
+    private final Function<DelegateCreationInfo<Key, Value>, KafkaesqueProducerDelegate<Key, Value>>
+        creationInfoFunction;
     private String topic;
     private Serializer<Key> keySerializer;
     private Serializer<Value> valueSerializer;
     private List<ProducerRecord<Key, Value>> records;
-    private long waitingAtMostForEachAckInterval;
-    private TimeUnit waitingAtMostForEachAckTimeUnit;
-    private long waitingAtMostForAllAcksInteval;
-    private TimeUnit waitingAtMostForAllAcksTimeUnit;
-    private long waitingForTheConsumerAtMostInterval;
-    private TimeUnit waitingForTheConsumerAtMostTimeUnit;
-  
+    private long waitingAtMostForEachAckInterval = 200L;
+    private TimeUnit waitingAtMostForEachAckTimeUnit = TimeUnit.MILLISECONDS;
+    private long waitingAtMostForAllAcksInteval = 1L;
+    private TimeUnit waitingAtMostForAllAcksTimeUnit = TimeUnit.SECONDS;
+    private long waitingForTheConsumerAtMostInterval = 500L;
+    private TimeUnit waitingForTheConsumerAtMostTimeUnit = TimeUnit.MILLISECONDS;
+
+    private Builder(
+        Function<
+                KafkaesqueProducerDelegate.DelegateCreationInfo<Key, Value>,
+                KafkaesqueProducerDelegate<Key, Value>>
+            creationInfoFunction) {
+      this.creationInfoFunction = creationInfoFunction;
+    }
+
+    static <Key, Value> Builder<Key, Value> newInstance(
+        Function<
+                KafkaesqueProducerDelegate.DelegateCreationInfo<Key, Value>,
+                KafkaesqueProducerDelegate<Key, Value>>
+            creationInfoFunction) {
+      return new Builder<>(creationInfoFunction);
+    }
+
     Builder<Key, Value> toTopic(String topic) {
       this.topic = topic;
       return this;
@@ -118,27 +142,39 @@ public final class KafkaesqueProducer<Key, Value> {
 
     KafkaesqueProducer<Key, Value> expecting() {
       validateInputs();
-      return null;
+      final KafkaesqueProducerDelegate<Key, Value> producerDelegate =
+          creationInfoFunction.apply(
+              new DelegateCreationInfo<>(topic, keySerializer, valueSerializer));
+      return new KafkaesqueProducer<>(
+          records,
+          producerDelegate,
+          Duration.of(
+              waitingAtMostForEachAckInterval, waitingAtMostForEachAckTimeUnit.toChronoUnit()),
+          Duration.of(
+              waitingAtMostForAllAcksInteval, waitingAtMostForAllAcksTimeUnit.toChronoUnit()),
+          Duration.of(
+              waitingForTheConsumerAtMostInterval,
+              waitingForTheConsumerAtMostTimeUnit.toChronoUnit()));
     }
-  
+
     private void validateInputs() {
       validateTopic();
       validateRecords();
       validateSerializers();
     }
-  
+
     private void validateTopic() {
       if (topic == null || topic.isBlank()) {
         throw new AssertionError("The topic name cannot be empty");
       }
     }
-  
+
     private void validateRecords() {
       if (records == null || records.isEmpty()) {
         throw new AssertionError("The list of records to send cannot be empty");
       }
     }
-  
+
     private void validateSerializers() {
       if (keySerializer == null || valueSerializer == null) {
         throw new AssertionError("The serializers cannot be null");
@@ -154,5 +190,30 @@ public final class KafkaesqueProducer<Key, Value> {
    */
   interface KafkaesqueProducerDelegate<Key, Value> {
     CompletableFuture<RecordMetadata> sendRecord(ProducerRecord<Key, Value> record);
+
+    class DelegateCreationInfo<Key, Value> {
+      private final String topic;
+      private final Serializer<Key> keySerializer;
+      private final Serializer<Value> valueSerializer;
+
+      public DelegateCreationInfo(
+          String topic, Serializer<Key> keySerializer, Serializer<Value> valueSerializer) {
+        this.topic = topic;
+        this.keySerializer = keySerializer;
+        this.valueSerializer = valueSerializer;
+      }
+
+      public String getTopic() {
+        return topic;
+      }
+
+      public Serializer<Key> getKeySerializer() {
+        return keySerializer;
+      }
+
+      public Serializer<Value> getValueSerializer() {
+        return valueSerializer;
+      }
+    }
   }
 }

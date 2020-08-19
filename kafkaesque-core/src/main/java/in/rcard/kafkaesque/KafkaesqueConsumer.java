@@ -86,7 +86,7 @@ public class KafkaesqueConsumer<Key, Value> {
       this.consumerDelegateFunction = consumerDelegateFunction;
     }
 
-    public static <Key, Value> Builder<Key, Value> newInstance(
+    static <Key, Value> Builder<Key, Value> newInstance(
         Function<DelegateCreationInfo<Key, Value>, ? extends KafkaesqueConsumerDelegate<Key, Value>>
             consumerDelegateFunction) {
       return new Builder<>(consumerDelegateFunction);
