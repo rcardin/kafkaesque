@@ -23,11 +23,11 @@ public interface Kafkaesque {
         .flatMap(clazz -> findConstructor(embeddedKafka, clazz))
         .findFirst()
         .map(ctor -> buildNewKafkaesqueInstance(embeddedKafka, ctor))
-        .orElseThrow(Kafkaesque::makeNoConstructorFoundAssertionError);
+        .orElseThrow(Kafkaesque::makeNoConstructorFoundException);
   }
 
-  static AssertionError makeNoConstructorFoundAssertionError() {
-    return new AssertionError("No method found to build a new instance of the Kafkaesque class");
+  static IllegalStateException makeNoConstructorFoundException() {
+    return new IllegalStateException("No method found to build a new instance of the Kafkaesque class");
   }
 
   static <K> Kafkaesque buildNewKafkaesqueInstance(K embeddedKafka, Constructor<?> ctor) {
@@ -35,7 +35,7 @@ public interface Kafkaesque {
     try {
       kafkaesque = ctor.newInstance(embeddedKafka);
     } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
-      throw new AssertionError(
+      throw new IllegalStateException(
           "There is no possible to instantiate a new object of type Kafkaesque", e);
     }
     return (Kafkaesque) kafkaesque;
@@ -64,14 +64,14 @@ public interface Kafkaesque {
   private static void verifyIfAnyKafkaesqueClassWasFound(
       Set<Class<? extends Kafkaesque>> kafkaesqueClasses) {
     if (kafkaesqueClasses == null || kafkaesqueClasses.size() == 0) {
-      throw new AssertionError("No implementation of a Kafkaesque class was found");
+      throw new IllegalStateException("No implementation of a Kafkaesque class was found");
     }
   }
 
   private static void verifyIfMoreThanOneKafkaesqueClassWasFound(
       Set<Class<? extends Kafkaesque>> kafkaesqueClasses) {
     if (kafkaesqueClasses.size() > 1) {
-      throw new AssertionError(
+      throw new IllegalStateException(
           String.format(
               "There is more than one implementation of the Kafkaesque main class %s",
               kafkaesqueClasses.toString()));

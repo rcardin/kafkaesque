@@ -55,7 +55,7 @@ public class KafkaesqueConsumer<Key, Value> {
     }
     return false;
   }
-  
+
   /**
    * Closes the consumer. After the closing operation, the consumer cannot read any more messages.
    */
@@ -143,30 +143,31 @@ public class KafkaesqueConsumer<Key, Value> {
     }
 
     private void validateInputs() {
-      validateConsumerDelegateSupplier();
+      validateConsumerDelegateFunction();
       validateTopic();
       validateDeserializers();
     }
 
-    private void validateConsumerDelegateSupplier() {
+    private void validateConsumerDelegateFunction() {
       if (consumerDelegateFunction == null) {
-        throw new AssertionError("The embedded kafka broker cannot be null");
+        throw new IllegalArgumentException(
+            "The function creating the consumer delegate cannot be null");
       }
     }
 
     private void validateTopic() {
       if (topic == null || topic.isBlank()) {
-        throw new AssertionError("The topic name cannot be empty");
+        throw new IllegalArgumentException("The topic name cannot be empty");
       }
     }
 
     private void validateDeserializers() {
       if (keyDeserializer == null || valueDeserializer == null) {
-        throw new AssertionError("The deserializers cannot be null");
+        throw new IllegalArgumentException("The deserializers cannot be null");
       }
     }
   }
-  
+
   /**
    * TODO
    *
@@ -175,6 +176,7 @@ public class KafkaesqueConsumer<Key, Value> {
    */
   interface KafkaesqueConsumerDelegate<Key, Value> {
     List<ConsumerRecord<Key, Value>> poll();
+
     void close();
 
     class DelegateCreationInfo<Key, Value> {
