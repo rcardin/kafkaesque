@@ -11,8 +11,7 @@ import java.util.stream.Stream;
 import org.reflections.Reflections;
 
 public interface Kafkaesque {
-
-  // TODO There is a problem with the first type parameter. Try to resolve
+  
   <Key, Value> KafkaesqueConsumer.Builder<Key, Value> consume();
 
   <Key, Value> KafkaesqueProducer.Builder<Key, Value> produce();
