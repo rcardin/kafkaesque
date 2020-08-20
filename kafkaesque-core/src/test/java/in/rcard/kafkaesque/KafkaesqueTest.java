@@ -29,7 +29,7 @@ class KafkaesqueTest {
     }
   
     @Override
-    public <Key, Value> KafkaesqueProducer.Builder<?, Key, Value> produce() {
+    public <Key, Value> KafkaesqueProducer.Builder<Key, Value> produce() {
       return null;
     }
   }

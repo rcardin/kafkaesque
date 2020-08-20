@@ -9,12 +9,17 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
+import org.springframework.kafka.core.DefaultKafkaProducerFactory;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.listener.KafkaMessageListenerContainer;
 import org.springframework.kafka.listener.MessageListener;
+import org.springframework.kafka.support.SendResult;
 import org.springframework.kafka.test.EmbeddedKafkaBroker;
 import org.springframework.kafka.test.utils.ContainerTestUtils;
 import org.springframework.kafka.test.utils.KafkaTestUtils;
+import org.springframework.util.concurrent.ListenableFuture;
 
 public class SpringKafkaesque implements Kafkaesque {
 
@@ -28,18 +33,18 @@ public class SpringKafkaesque implements Kafkaesque {
   public <Key, Value> Builder<Key, Value> consume() {
     return Builder.newInstance(
         creationInfo -> {
-          Map<String, Object> consumerProps =
+          final Map<String, Object> consumerProps =
               KafkaTestUtils.consumerProps("kafkaesqueConsumer", "false", embeddedKafkaBroker);
-          DefaultKafkaConsumerFactory<Key, Value> cf =
+          final DefaultKafkaConsumerFactory<Key, Value> cf =
               new DefaultKafkaConsumerFactory<>(
                   consumerProps,
                   creationInfo.getKeyDeserializer(),
                   creationInfo.getValueDeserializer());
-          ContainerProperties containerProperties =
+          final ContainerProperties containerProperties =
               new ContainerProperties(creationInfo.getTopic());
-          KafkaMessageListenerContainer<Key, Value> container =
+          final KafkaMessageListenerContainer<Key, Value> container =
               new KafkaMessageListenerContainer<>(cf, containerProperties);
-          BlockingQueue<ConsumerRecord<Key, Value>> records = new LinkedBlockingQueue<>();
+          final BlockingQueue<ConsumerRecord<Key, Value>> records = new LinkedBlockingQueue<>();
           container.setupMessageListener((MessageListener<Key, Value>) records::add);
           container.setBeanName("kafkaesqueContainer");
           container.start();
@@ -53,7 +58,7 @@ public class SpringKafkaesque implements Kafkaesque {
               records.drainTo(newMessages);
               return newMessages;
             }
-  
+
             @Override
             public void close() {
               container.stop();
@@ -64,6 +69,21 @@ public class SpringKafkaesque implements Kafkaesque {
 
   @Override
   public <Key, Value> KafkaesqueProducer.Builder<Key, Value> produce() {
-    return null;
+    return new KafkaesqueProducer.Builder<>(
+        creationInfo -> {
+          final Map<String, Object> producerProps =
+              KafkaTestUtils.producerProps(embeddedKafkaBroker);
+          final ProducerFactory<Key, Value> pf =
+              new DefaultKafkaProducerFactory<>(
+                  producerProps,
+                  creationInfo.getKeySerializer(),
+                  creationInfo.getValueSerializer());
+          final KafkaTemplate<Key, Value> template = new KafkaTemplate<>(pf);
+          template.setDefaultTopic(creationInfo.getTopic());
+          return record -> {
+            final ListenableFuture<SendResult<Key, Value>> future = template.send(record);
+            return future.completable().thenApply(SendResult::getRecordMetadata);
+          };
+        });
   }
 }

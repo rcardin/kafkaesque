@@ -89,10 +89,10 @@ public final class KafkaesqueProducer<Key, Value> {
     private long waitingForTheConsumerAtMostInterval = 500L;
     private TimeUnit waitingForTheConsumerAtMostTimeUnit = TimeUnit.MILLISECONDS;
 
-    private Builder(
+    Builder(
         Function<
-                KafkaesqueProducerDelegate.DelegateCreationInfo<Key, Value>,
-                KafkaesqueProducerDelegate<Key, Value>>
+                    KafkaesqueProducerDelegate.DelegateCreationInfo<Key, Value>,
+                    KafkaesqueProducerDelegate<Key, Value>>
             creationInfoFunction) {
       this.creationInfoFunction = creationInfoFunction;
     }
