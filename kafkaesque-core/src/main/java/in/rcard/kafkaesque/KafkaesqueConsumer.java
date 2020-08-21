@@ -3,11 +3,14 @@ package in.rcard.kafkaesque;
 import in.rcard.kafkaesque.KafkaesqueConsumer.KafkaesqueConsumerDelegate.DelegateCreationInfo;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.serialization.Deserializer;
 import org.awaitility.Awaitility;
+import org.awaitility.core.ConditionTimeoutException;
 
 /**
  * Represents a consumer that can read messages with key of type {@code Key}, and value of type
@@ -38,21 +41,35 @@ public class KafkaesqueConsumer<Key, Value> {
    */
   public ConsumedResults<Key, Value> poll() {
     try {
+      final AtomicInteger emptyCycles = new AtomicInteger(2);
       final List<ConsumerRecord<Key, Value>> readMessages = new ArrayList<>();
-      Awaitility.await().atMost(interval, timeUnit).until(() -> areNewMessagesToRead(readMessages));
+      Awaitility.await()
+          .atMost(interval, timeUnit)
+          .until(
+              () -> {
+                if (readNewMessages(readMessages) == 0) {
+                  return emptyCycles.decrementAndGet() == 0;
+                }
+                return false;
+              });
       return new ConsumedResults<>(readMessages);
+    } catch (ConditionTimeoutException ctex) {
+      throw new AssertionError(
+          String.format(
+              "The consumer reads new messages until the end of the given time interval: %d %s",
+              interval, timeUnit.toString()));
     } catch (Exception ex) {
       throw new KafkaesqueConsumerPollException("Error during the poll operation", ex);
     }
   }
 
-  private Boolean areNewMessagesToRead(List<ConsumerRecord<Key, Value>> readMessages) {
+  private int readNewMessages(List<ConsumerRecord<Key, Value>> readMessages) {
     final List<ConsumerRecord<Key, Value>> newMessages = consumerDelegate.poll();
     if (newMessages != null && !newMessages.isEmpty()) {
       readMessages.addAll(newMessages);
-      return true;
+      return newMessages.size();
     }
-    return false;
+    return 0;
   }
 
   /**
@@ -176,26 +193,29 @@ public class KafkaesqueConsumer<Key, Value> {
    * @param <Value> The type of the messages' value
    */
   interface KafkaesqueConsumerDelegate<Key, Value> {
-  
+
     /**
      * Returns the messages that are available in a specific topic of a Kafka broker.
+     *
      * @return A list of Kafka messages
      */
     List<ConsumerRecord<Key, Value>> poll();
-  
+
     /**
      * Closes the consumer. Every call to the {@link #poll()} method after having close a consumer
      * <strong>must</strong> raise some king of exceptions.
      */
     void close();
-  
+
     /**
      * Information needed to create a concrete Kafka consumer:
+     *
      * <ul>
-     *   <li>A topic</li>
-     *   <li>A key deserializer</li>
-     *   <li>A value deserializer</li>
+     *   <li>A topic
+     *   <li>A key deserializer
+     *   <li>A value deserializer
      * </ul>
+     *
      * @param <Key> The type of the messages' key
      * @param <Value> The type of the messages' value
      */
