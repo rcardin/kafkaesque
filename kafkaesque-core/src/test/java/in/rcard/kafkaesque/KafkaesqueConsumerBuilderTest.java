@@ -6,6 +6,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import in.rcard.kafkaesque.KafkaesqueConsumer.Builder;
 import in.rcard.kafkaesque.KafkaesqueConsumer.KafkaesqueConsumerDelegate;
 import in.rcard.kafkaesque.KafkaesqueConsumer.KafkaesqueConsumerDelegate.DelegateCreationInfo;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.junit.jupiter.api.BeforeEach;
@@ -33,6 +34,17 @@ class KafkaesqueConsumerBuilderTest {
   @Test
   void fromTopicShouldReturnTheSameInstanceOfTheBuilder() {
     assertThat(builder.fromTopic("topic")).isEqualTo(builder);
+  }
+
+  @Test
+  void withDeserializersShouldReturnTheSameInstanceOfTheBuilder() {
+    assertThat(builder.withDeserializers(new StringDeserializer(), new StringDeserializer()))
+        .isEqualTo(builder);
+  }
+
+  @Test
+  void waitingAtMostShouldReturnTheSameInstanceOfTheBuilder() {
+    assertThat(builder.waitingAtMost(100L, TimeUnit.MILLISECONDS)).isEqualTo(builder);
   }
 
   @Test
@@ -73,5 +85,16 @@ class KafkaesqueConsumerBuilderTest {
                     .expecting())
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessage("The deserializers cannot be null");
+  }
+
+  @Test
+  void expectingShouldReturnANewInstanceOfAKafkaesqueConsumer() {
+    final KafkaesqueConsumer<String, String> consumer =
+        builder
+            .withDeserializers(new StringDeserializer(), new StringDeserializer())
+            .fromTopic("topic")
+            .waitingAtMost(100L, TimeUnit.MILLISECONDS)
+            .expecting();
+    assertThat(consumer).isNotNull();
   }
 }

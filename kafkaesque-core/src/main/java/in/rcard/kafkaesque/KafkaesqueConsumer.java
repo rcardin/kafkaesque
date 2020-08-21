@@ -40,7 +40,6 @@ public class KafkaesqueConsumer<Key, Value> {
     try {
       final List<ConsumerRecord<Key, Value>> readMessages = new ArrayList<>();
       Awaitility.await().atMost(interval, timeUnit).until(() -> areNewMessagesToRead(readMessages));
-      // container.stop();
       return new ConsumedResults<>(readMessages);
     } catch (Exception ex) {
       throw new KafkaesqueConsumerPollException("Error during the poll operation", ex);
@@ -169,16 +168,37 @@ public class KafkaesqueConsumer<Key, Value> {
   }
 
   /**
-   * TODO
+   * Represents the concrete Kafka consumer that uses a specific technology or library as
+   * implementation (e.g. <a href="https://spring.io/projects/spring-kafka" target="_blank">Spring
+   * Kafka</a>).
    *
-   * @param <Key>
-   * @param <Value>
+   * @param <Key> The type of the messages' key
+   * @param <Value> The type of the messages' value
    */
   interface KafkaesqueConsumerDelegate<Key, Value> {
+  
+    /**
+     * Returns the messages that are available in a specific topic of a Kafka broker.
+     * @return A list of Kafka messages
+     */
     List<ConsumerRecord<Key, Value>> poll();
-
+  
+    /**
+     * Closes the consumer. Every call to the {@link #poll()} method after having close a consumer
+     * <strong>must</strong> raise some king of exceptions.
+     */
     void close();
-
+  
+    /**
+     * Information needed to create a concrete Kafka consumer:
+     * <ul>
+     *   <li>A topic</li>
+     *   <li>A key deserializer</li>
+     *   <li>A value deserializer</li>
+     * </ul>
+     * @param <Key> The type of the messages' key
+     * @param <Value> The type of the messages' value
+     */
     class DelegateCreationInfo<Key, Value> {
       private final String topic;
       private final Deserializer<Key> keyDeserializer;
