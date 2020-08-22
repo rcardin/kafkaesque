@@ -3,7 +3,6 @@ package in.rcard.kafkaesque;
 import in.rcard.kafkaesque.KafkaesqueConsumer.KafkaesqueConsumerDelegate.DelegateCreationInfo;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
@@ -24,13 +23,24 @@ public class KafkaesqueConsumer<Key, Value> {
 
   private final long interval;
   private final TimeUnit timeUnit;
+  private final int emptyPollsCount;
+  private final long emptyPollsInterval;
+  private final TimeUnit emptyPollsTimeUnit;
 
   private final KafkaesqueConsumerDelegate<Key, Value> consumerDelegate;
 
   KafkaesqueConsumer(
-      long interval, TimeUnit timeUnit, KafkaesqueConsumerDelegate<Key, Value> consumerDelegate) {
+      long interval,
+      TimeUnit timeUnit,
+      int emptyPollsCount,
+      long emptyPollsInterval,
+      TimeUnit emptyPollsTimeUnit,
+      KafkaesqueConsumerDelegate<Key, Value> consumerDelegate) {
     this.interval = interval;
     this.timeUnit = timeUnit;
+    this.emptyPollsCount = emptyPollsCount;
+    this.emptyPollsInterval = emptyPollsInterval;
+    this.emptyPollsTimeUnit = emptyPollsTimeUnit;
     this.consumerDelegate = consumerDelegate;
   }
 
@@ -41,10 +51,11 @@ public class KafkaesqueConsumer<Key, Value> {
    */
   public ConsumedResults<Key, Value> poll() {
     try {
-      final AtomicInteger emptyCycles = new AtomicInteger(2);
+      final AtomicInteger emptyCycles = new AtomicInteger(emptyPollsCount);
       final List<ConsumerRecord<Key, Value>> readMessages = new ArrayList<>();
       Awaitility.await()
           .atMost(interval, timeUnit)
+          .pollInterval(emptyPollsInterval, emptyPollsTimeUnit)
           .until(
               () -> {
                 if (readNewMessages(readMessages) == 0) {
@@ -92,10 +103,15 @@ public class KafkaesqueConsumer<Key, Value> {
     private Deserializer<Value> valueDeserializer;
     private long interval = 200;
     private TimeUnit timeUnit = TimeUnit.MILLISECONDS;
+    private int emptyPollsCount = 2;
+    private long emptyPollsInterval = 50L;
+    private TimeUnit emptyPollsTimeUnit = TimeUnit.MILLISECONDS;
+  
+  
     private final Function<
             DelegateCreationInfo<Key, Value>, ? extends KafkaesqueConsumerDelegate<Key, Value>>
         consumerDelegateFunction;
-
+  
     private Builder(
         Function<DelegateCreationInfo<Key, Value>, ? extends KafkaesqueConsumerDelegate<Key, Value>>
             consumerDelegateFunction) {
@@ -143,6 +159,13 @@ public class KafkaesqueConsumer<Key, Value> {
       this.timeUnit = unit;
       return this;
     }
+    
+    public Builder<Key, Value> waitingEmptyPolls(int count, long waitingInterval, TimeUnit waitingTimeUnit) {
+      this.emptyPollsCount = count;
+      this.emptyPollsInterval = waitingInterval;
+      this.emptyPollsTimeUnit = waitingTimeUnit;
+      return this;
+    }
 
     /**
      * Creates a concrete instance of the {@link KafkaesqueConsumer}. Before the creation, performs
@@ -155,7 +178,8 @@ public class KafkaesqueConsumer<Key, Value> {
       final DelegateCreationInfo<Key, Value> creationInfo =
           new DelegateCreationInfo<>(topic, keyDeserializer, valueDeserializer);
       return new KafkaesqueConsumer<>(
-          interval, timeUnit, consumerDelegateFunction.apply(creationInfo));
+          interval, timeUnit, emptyPollsCount, emptyPollsInterval, emptyPollsTimeUnit,
+          consumerDelegateFunction.apply(creationInfo));
     }
 
     private void validateInputs() {
