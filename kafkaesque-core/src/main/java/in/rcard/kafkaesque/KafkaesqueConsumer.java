@@ -159,7 +159,14 @@ public class KafkaesqueConsumer<Key, Value> {
       this.timeUnit = unit;
       return this;
     }
-    
+  
+    /**
+     * Sets the number of times a poll should return an empty list of messages to consider the read
+     * phase concluded.
+     * @param count Number of empty polls
+     * @param waitingInterval The interval to wait between two poll operations
+     * @param waitingTimeUnit The time unit of the above interval
+     */
     public Builder<Key, Value> waitingEmptyPolls(int count, long waitingInterval, TimeUnit waitingTimeUnit) {
       this.emptyPollsCount = count;
       this.emptyPollsInterval = waitingInterval;

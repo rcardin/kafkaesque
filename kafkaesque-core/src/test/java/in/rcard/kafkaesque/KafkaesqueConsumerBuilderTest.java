@@ -48,6 +48,12 @@ class KafkaesqueConsumerBuilderTest {
   }
 
   @Test
+  void waitingEmptyPollsShouldReturnTheSameInstanceOfTheBuilder() {
+    assertThat(builder.waitingEmptyPolls(2, 50L, TimeUnit.MILLISECONDS))
+        .isEqualTo(builder);
+  }
+
+  @Test
   void expectingShouldThrowAnIAEIfTheFunctionToCreateTheDelegateConsumerIsNull() {
     assertThatThrownBy(() -> Builder.newInstance(null).expecting())
         .isInstanceOf(IllegalArgumentException.class)
