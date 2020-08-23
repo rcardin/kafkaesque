@@ -22,6 +22,7 @@ Kafkaesque
   .fromTopic("topic-name")
   .withDeserializers(keyDeserializer, valueDeserializer)
   .waitingAtMost(10, SECONDS)
+  .waitingEmptyPolls(2, 50L, MILLISECONDS)
   .expecting() // <-- build method that effectively consumes new KafkaesqueConsumer().poll()
   .havingRecordsSize(3) // <-- from here we use a ConsumedResult
   .havingHeaders(headers -> {
