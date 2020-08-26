@@ -44,22 +44,34 @@ public final class KafkaesqueProducer<Key, Value> {
       Consumer<ProducerRecord<Key, Value>> messageConsumer) {
     records.forEach(
         record -> {
-          try {
-            producerDelegate
-                .sendRecord(record)
-                .get(forEachAckDuration.toMillis(), TimeUnit.MILLISECONDS);
-          } catch (InterruptedException | ExecutionException | TimeoutException e) {
-            throw new AssertionError(e);
-          }
+          sendRecord(record);
           Awaitility.await()
               .atMost(waitForConsumerDuration)
               .untilAsserted(() -> messageConsumer.accept(record));
         });
     return this;
   }
-
+  
+  private void sendRecord(ProducerRecord<Key, Value> record) {
+    try {
+      producerDelegate
+          .sendRecord(record)
+          .get(forEachAckDuration.toMillis(), TimeUnit.MILLISECONDS);
+    } catch (InterruptedException | ExecutionException | TimeoutException e) {
+      throw new AssertionError(e);
+    }
+  }
+  
   KafkaesqueProducer<Key, Value> assertingAfterAll(
       Consumer<List<ProducerRecord<Key, Value>>> messagesConsumer) {
+    sendRecords();
+    Awaitility.await()
+        .atMost(waitForConsumerDuration)
+        .untilAsserted(() -> messagesConsumer.accept(records));
+    return this;
+  }
+  
+  private void sendRecords() {
     final List<CompletableFuture<RecordMetadata>> futures =
         records.stream().map(producerDelegate::sendRecord).collect(Collectors.toList());
     try {
@@ -68,12 +80,8 @@ public final class KafkaesqueProducer<Key, Value> {
     } catch (InterruptedException | ExecutionException | TimeoutException e) {
       throw new AssertionError(e);
     }
-    Awaitility.await()
-        .atMost(waitForConsumerDuration)
-        .untilAsserted(() -> messagesConsumer.accept(records));
-    return this;
   }
-
+  
   static class Builder<Key, Value> {
 
     private final Function<DelegateCreationInfo<Key, Value>, KafkaesqueProducerDelegate<Key, Value>>
@@ -158,11 +166,19 @@ public final class KafkaesqueProducer<Key, Value> {
     }
 
     private void validateInputs() {
+      validateProducerDelegateFunction();
       validateTopic();
       validateRecords();
       validateSerializers();
     }
-
+  
+    private void validateProducerDelegateFunction() {
+      if (creationInfoFunction == null) {
+        throw new IllegalArgumentException(
+            "The function creating the producer delegate cannot be null");
+      }
+    }
+  
     private void validateTopic() {
       if (topic == null || topic.isBlank()) {
         throw new AssertionError("The topic name cannot be empty");
