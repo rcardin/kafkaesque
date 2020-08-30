@@ -33,4 +33,25 @@ class KafkaesqueProducerBuilderTest {
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessage("The function creating the producer delegate cannot be null");
   }
+
+  @Test
+  void expectingShouldThrowAnIAEIfTheTopicIsNull() {
+    assertThatThrownBy(() -> builder.expecting())
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessage("The topic name cannot be empty");
+  }
+  
+  @Test
+  void expectingShouldThrowAnIAEIfTheTopicIsEmpty() {
+    assertThatThrownBy(() -> builder.toTopic("").expecting())
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessage("The topic name cannot be empty");
+  }
+  
+  @Test
+  void expectingShouldThrowAnIAEIfTheTopicIsBlank() {
+    assertThatThrownBy(() -> builder.toTopic("    ").expecting())
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessage("The topic name cannot be empty");
+  }
 }

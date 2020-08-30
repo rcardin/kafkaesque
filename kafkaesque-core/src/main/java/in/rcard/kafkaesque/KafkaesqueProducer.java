@@ -181,19 +181,19 @@ public final class KafkaesqueProducer<Key, Value> {
   
     private void validateTopic() {
       if (topic == null || topic.isBlank()) {
-        throw new AssertionError("The topic name cannot be empty");
+        throw new IllegalArgumentException("The topic name cannot be empty");
       }
     }
 
     private void validateRecords() {
       if (records == null || records.isEmpty()) {
-        throw new AssertionError("The list of records to send cannot be empty");
+        throw new IllegalArgumentException("The list of records to send cannot be empty");
       }
     }
 
     private void validateSerializers() {
       if (keySerializer == null || valueSerializer == null) {
-        throw new AssertionError("The serializers cannot be null");
+        throw new IllegalArgumentException("The serializers cannot be null");
       }
     }
   }
