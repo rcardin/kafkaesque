@@ -8,6 +8,7 @@ import in.rcard.kafkaesque.KafkaesqueProducer.KafkaesqueProducerDelegate;
 import in.rcard.kafkaesque.KafkaesqueProducer.KafkaesqueProducerDelegate.DelegateCreationInfo;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.StringSerializer;
@@ -32,6 +33,37 @@ class KafkaesqueProducerBuilderTest {
   @BeforeEach
   void setUp() {
     builder = Builder.newInstance(delegateCreator);
+  }
+
+  @Test
+  void toTopicShouldReturnTheSameInstanceOfTheBuilder() {
+    assertThat(builder.toTopic("topic")).isEqualTo(builder);
+  }
+
+  @Test
+  void withSerializersShouldReturnTheSameInstanceOfTheBuilder() {
+    assertThat(builder.withSerializers(new StringSerializer(), new StringSerializer()))
+        .isEqualTo(builder);
+  }
+
+  @Test
+  void messagesShouldReturnTheSameInstanceOfTheBuilder() {
+    assertThat(builder.messages(Collections.emptyList())).isEqualTo(builder);
+  }
+
+  @Test
+  void waitingAtMostForEachAckShouldReturnTheSameInstanceOfTheBuilder() {
+    assertThat(builder.waitingAtMostForEachAck(42L, TimeUnit.SECONDS)).isEqualTo(builder);
+  }
+
+  @Test
+  void waitingAtMostForAllAcksShouldReturnTheSameInstanceOfTheBuilder() {
+    assertThat(builder.waitingAtMostForAllAcks(42L, TimeUnit.SECONDS)).isEqualTo(builder);
+  }
+
+  @Test
+  void waitingForTheConsumerAtMostShouldReturnTheSameInstanceOfTheBuilder() {
+    assertThat(builder.waitingForTheConsumerAtMost(42L, TimeUnit.SECONDS)).isEqualTo(builder);
   }
 
   @Test
