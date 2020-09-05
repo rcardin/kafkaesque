@@ -16,6 +16,14 @@ import org.apache.kafka.common.serialization.Serializer;
 import org.awaitility.Awaitility;
 import org.awaitility.core.ConditionTimeoutException;
 
+/**
+ * Represents a producer that sends messages with keys of type {@code Key} and with values of type
+ * {@code Value}.
+ *
+ * @param <Key> Type of the key of a message
+ * @param <Value> Type of the value of a message
+ * @see Builder
+ */
 public final class KafkaesqueProducer<Key, Value> {
 
   private final Duration forEachAckDuration;
@@ -37,6 +45,17 @@ public final class KafkaesqueProducer<Key, Value> {
     this.waitForConsumerDuration = waitForConsumerDuration;
   }
 
+  /**
+   * Asserts that some conditions hold on a single sent message.<br/>
+   * For example:
+   * <pre>
+   *   producer.assertingAfterEach(
+   *       pr -> assertThat(pr.key()).isEqualTo("key")
+   *   );
+   * </pre>
+   *
+   * @param messageConsumer The conditions that must hold on a message
+   */
   public void assertingAfterEach(Consumer<ProducerRecord<Key, Value>> messageConsumer) {
     records.forEach(
         record -> {
@@ -45,7 +64,7 @@ public final class KafkaesqueProducer<Key, Value> {
         });
   }
 
-  public void consume(
+  private void consume(
       Consumer<ProducerRecord<Key, Value>> messageConsumer, ProducerRecord<Key, Value> record) {
     try {
       Awaitility.await()
@@ -71,12 +90,24 @@ public final class KafkaesqueProducer<Key, Value> {
     }
   }
 
+  /**
+   * Asserts that some conditions hold on the whole list of sent message.<br>
+   * For example:
+   *
+   * <pre>
+   *   producer.assertingAfterAll(
+   *       records -> assertThat(records).hasSize(2)
+   *   );
+   * </pre>
+   *
+   * @param messagesConsumer The conditions that must hold on the whole list of messages
+   */
   public void assertingAfterAll(Consumer<List<ProducerRecord<Key, Value>>> messagesConsumer) {
     sendRecords();
     consume(messagesConsumer);
   }
   
-  public void consume(Consumer<List<ProducerRecord<Key, Value>>> messagesConsumer) {
+  private void consume(Consumer<List<ProducerRecord<Key, Value>>> messagesConsumer) {
     try {
       Awaitility.await()
           .atMost(waitForConsumerDuration)
@@ -104,7 +135,19 @@ public final class KafkaesqueProducer<Key, Value> {
     }
   }
 
-  static class Builder<Key, Value> {
+  /**
+   * Creates instances of {@link KafkaesqueProducer}.<br/>
+   * There are defaults for some properties. In details, we have the following:
+   *
+   * <ol>
+   *   <li>{@code waitingAtMostForEachAck(200L, TimeUnit.MILLISECONDS)}
+   *   <li>{@code waitingForTheConsumerAtMost(500L, TimeUnit.MILLISECONDS)}
+   * </ol>
+   *
+   * @param <Key> The type of the key of a message that the consumer can read
+   * @param <Value> The type of the value of a message that the consumer can read
+   */
+  public static class Builder<Key, Value> {
 
     private final Function<DelegateCreationInfo<Key, Value>, KafkaesqueProducerDelegate<Key, Value>>
         creationInfoFunction;
@@ -133,36 +176,36 @@ public final class KafkaesqueProducer<Key, Value> {
       return new Builder<>(creationInfoFunction);
     }
 
-    Builder<Key, Value> toTopic(String topic) {
+    public Builder<Key, Value> toTopic(String topic) {
       this.topic = topic;
       return this;
     }
 
-    Builder<Key, Value> withSerializers(
+    public Builder<Key, Value> withSerializers(
         Serializer<Key> keySerializer, Serializer<Value> valueSerializer) {
       this.keySerializer = keySerializer;
       this.valueSerializer = valueSerializer;
       return this;
     }
 
-    Builder<Key, Value> messages(List<ProducerRecord<Key, Value>> records) {
+    public Builder<Key, Value> messages(List<ProducerRecord<Key, Value>> records) {
       this.records = records;
       return this;
     }
 
-    Builder<Key, Value> waitingAtMostForEachAck(long interval, TimeUnit unit) {
+    public Builder<Key, Value> waitingAtMostForEachAck(long interval, TimeUnit unit) {
       this.waitingAtMostForEachAckInterval = interval;
       this.waitingAtMostForEachAckTimeUnit = unit;
       return this;
     }
 
-    Builder<Key, Value> waitingForTheConsumerAtMost(long interval, TimeUnit unit) {
+    public Builder<Key, Value> waitingForTheConsumerAtMost(long interval, TimeUnit unit) {
       this.waitingForTheConsumerAtMostInterval = interval;
       this.waitingForTheConsumerAtMostTimeUnit = unit;
       return this;
     }
 
-    KafkaesqueProducer<Key, Value> expecting() {
+    public KafkaesqueProducer<Key, Value> expecting() {
       validateInputs();
       final KafkaesqueProducerDelegate<Key, Value> producerDelegate =
           creationInfoFunction.apply(

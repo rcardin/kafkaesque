@@ -91,12 +91,18 @@ public class KafkaesqueConsumer<Key, Value> {
   }
 
   /**
-   * Creates instances of {@link KafkaesqueConsumer}.
+   * Creates instances of {@link KafkaesqueConsumer}.<br/>
+   * There are defaults for some properties. In details, we have the following:
+   *
+   * <ol>
+   *   <li>{@code waitingAtMost(200L, TimeUnit.MILLISECONDS)}</li>
+   *   <li>{@code waitingEmptyPolls(2, 50L, TimeUnit.MILLISECONDS)}</li>
+   * </ol>
    *
    * @param <Key> The type of the key of a message that the consumer can read
    * @param <Value> The type of the value of a message that the consumer can read
    */
-  static class Builder<Key, Value> {
+  public static class Builder<Key, Value> {
 
     private String topic;
     private Deserializer<Key> keyDeserializer;
@@ -125,7 +131,7 @@ public class KafkaesqueConsumer<Key, Value> {
     }
 
     /**
-     * Sets the topic to read from. This information should be mandatory.
+     * Sets the topic to read from. This information is mandatory.
      *
      * @param topic The topic name
      */
@@ -135,7 +141,7 @@ public class KafkaesqueConsumer<Key, Value> {
     }
 
     /**
-     * Sets the key and value deserializers. This information should be mandatory.
+     * Sets the key and value deserializers. This information is mandatory.
      *
      * @param keyDeserializer The key deserializer
      * @param valueDeserializer The value deserializer
@@ -149,7 +155,8 @@ public class KafkaesqueConsumer<Key, Value> {
 
     /**
      * Sets the time interval to wait until the receipt of all the produced messages. This
-     * information should be optional, providing a default.
+     * information is optional. The default values are {@code 200L} and
+     * {@code TimeUnit.MILLISECOND}.
      *
      * @param interval Time interval
      * @param unit Unit of the time interval
@@ -159,15 +166,18 @@ public class KafkaesqueConsumer<Key, Value> {
       this.timeUnit = unit;
       return this;
     }
-  
+
     /**
      * Sets the number of times a poll should return an empty list of messages to consider the read
-     * phase concluded.
+     * phase concluded. This information is optional. The default values are {@code 2}, {@code 50L},
+     * and {@code TimeUnit.MILLISECONDS}.
+     *
      * @param count Number of empty polls
      * @param waitingInterval The interval to wait between two poll operations
      * @param waitingTimeUnit The time unit of the above interval
      */
-    public Builder<Key, Value> waitingEmptyPolls(int count, long waitingInterval, TimeUnit waitingTimeUnit) {
+    public Builder<Key, Value> waitingEmptyPolls(
+        int count, long waitingInterval, TimeUnit waitingTimeUnit) {
       this.emptyPollsCount = count;
       this.emptyPollsInterval = waitingInterval;
       this.emptyPollsTimeUnit = waitingTimeUnit;
