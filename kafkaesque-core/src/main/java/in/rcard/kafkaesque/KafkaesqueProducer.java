@@ -14,12 +14,11 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
 import org.apache.kafka.common.serialization.Serializer;
 import org.awaitility.Awaitility;
+import org.awaitility.core.ConditionTimeoutException;
 
 public final class KafkaesqueProducer<Key, Value> {
 
   private final Duration forEachAckDuration;
-
-  private final Duration forAllAcksDuration;
 
   private final Duration waitForConsumerDuration;
 
@@ -31,44 +30,63 @@ public final class KafkaesqueProducer<Key, Value> {
       List<ProducerRecord<Key, Value>> records,
       KafkaesqueProducerDelegate<Key, Value> producerDelegate,
       Duration forEachAckDuration,
-      Duration forAllAcksDuration,
       Duration waitForConsumerDuration) {
     this.records = records;
     this.producerDelegate = producerDelegate;
     this.forEachAckDuration = forEachAckDuration;
-    this.forAllAcksDuration = forAllAcksDuration;
     this.waitForConsumerDuration = waitForConsumerDuration;
   }
 
-  KafkaesqueProducer<Key, Value> assertingAfterEach(
-      Consumer<ProducerRecord<Key, Value>> messageConsumer) {
+  public void assertingAfterEach(Consumer<ProducerRecord<Key, Value>> messageConsumer) {
     records.forEach(
         record -> {
           sendRecord(record);
-          Awaitility.await()
-              .atMost(waitForConsumerDuration)
-              .untilAsserted(() -> messageConsumer.accept(record));
+          consume(messageConsumer, record);
         });
-    return this;
   }
-  
-  private void sendRecord(ProducerRecord<Key, Value> record) {
+
+  public void consume(
+      Consumer<ProducerRecord<Key, Value>> messageConsumer, ProducerRecord<Key, Value> record) {
     try {
-      producerDelegate
-          .sendRecord(record)
-          .get(forEachAckDuration.toMillis(), TimeUnit.MILLISECONDS);
-    } catch (InterruptedException | ExecutionException | TimeoutException e) {
-      throw new AssertionError(e);
+      Awaitility.await()
+          .atMost(waitForConsumerDuration)
+          .untilAsserted(() -> messageConsumer.accept(record));
+    } catch (ConditionTimeoutException ctex) {
+      throw new AssertionError(
+          String.format(
+              "The consuming of the message %s takes more than %d milliseconds",
+              record, waitForConsumerDuration.toMillis()));
     }
   }
-  
-  KafkaesqueProducer<Key, Value> assertingAfterAll(
-      Consumer<List<ProducerRecord<Key, Value>>> messagesConsumer) {
+
+  private void sendRecord(ProducerRecord<Key, Value> record) {
+    try {
+      producerDelegate.sendRecord(record).get(forEachAckDuration.toMillis(), TimeUnit.MILLISECONDS);
+    } catch (InterruptedException | ExecutionException | TimeoutException e) {
+      throw new AssertionError(
+          String.format(
+              "Impossible to send a the record %s in %d milliseconds",
+              record, forEachAckDuration.toMillis()),
+          e);
+    }
+  }
+
+  public void assertingAfterAll(Consumer<List<ProducerRecord<Key, Value>>> messagesConsumer) {
     sendRecords();
-    Awaitility.await()
-        .atMost(waitForConsumerDuration)
-        .untilAsserted(() -> messagesConsumer.accept(records));
-    return this;
+    consume(messagesConsumer);
+  }
+  
+  public void consume(Consumer<List<ProducerRecord<Key, Value>>> messagesConsumer) {
+    try {
+      Awaitility.await()
+          .atMost(waitForConsumerDuration)
+          .untilAsserted(() -> messagesConsumer.accept(records));
+    } catch (ConditionTimeoutException ctex) {
+      throw new AssertionError(
+          String.format(
+              "The consuming of the list of messages %s takes more than %d milliseconds",
+              records, waitForConsumerDuration.toMillis()));
+    }
   }
   
   private void sendRecords() {
@@ -76,12 +94,16 @@ public final class KafkaesqueProducer<Key, Value> {
         records.stream().map(producerDelegate::sendRecord).collect(Collectors.toList());
     try {
       CompletableFuture.allOf(futures.toArray(CompletableFuture[]::new))
-          .get(forAllAcksDuration.toMillis(), TimeUnit.MILLISECONDS);
+          .get(forEachAckDuration.toMillis(), TimeUnit.MILLISECONDS);
     } catch (InterruptedException | ExecutionException | TimeoutException e) {
-      throw new AssertionError(e);
+      throw new AssertionError(
+          String.format(
+              "At least the sending of one record of the list %s takes more than %d milliseconds",
+              records, forEachAckDuration.toMillis()),
+          e);
     }
   }
-  
+
   static class Builder<Key, Value> {
 
     private final Function<DelegateCreationInfo<Key, Value>, KafkaesqueProducerDelegate<Key, Value>>
@@ -92,15 +114,13 @@ public final class KafkaesqueProducer<Key, Value> {
     private List<ProducerRecord<Key, Value>> records;
     private long waitingAtMostForEachAckInterval = 200L;
     private TimeUnit waitingAtMostForEachAckTimeUnit = TimeUnit.MILLISECONDS;
-    private long waitingAtMostForAllAcksInteval = 1L;
-    private TimeUnit waitingAtMostForAllAcksTimeUnit = TimeUnit.SECONDS;
     private long waitingForTheConsumerAtMostInterval = 500L;
     private TimeUnit waitingForTheConsumerAtMostTimeUnit = TimeUnit.MILLISECONDS;
 
     Builder(
         Function<
-                    KafkaesqueProducerDelegate.DelegateCreationInfo<Key, Value>,
-                    KafkaesqueProducerDelegate<Key, Value>>
+                KafkaesqueProducerDelegate.DelegateCreationInfo<Key, Value>,
+                KafkaesqueProducerDelegate<Key, Value>>
             creationInfoFunction) {
       this.creationInfoFunction = creationInfoFunction;
     }
@@ -136,12 +156,6 @@ public final class KafkaesqueProducer<Key, Value> {
       return this;
     }
 
-    Builder<Key, Value> waitingAtMostForAllAcks(long interval, TimeUnit unit) {
-      this.waitingAtMostForAllAcksInteval = interval;
-      this.waitingAtMostForAllAcksTimeUnit = unit;
-      return this;
-    }
-
     Builder<Key, Value> waitingForTheConsumerAtMost(long interval, TimeUnit unit) {
       this.waitingForTheConsumerAtMostInterval = interval;
       this.waitingForTheConsumerAtMostTimeUnit = unit;
@@ -159,8 +173,6 @@ public final class KafkaesqueProducer<Key, Value> {
           Duration.of(
               waitingAtMostForEachAckInterval, waitingAtMostForEachAckTimeUnit.toChronoUnit()),
           Duration.of(
-              waitingAtMostForAllAcksInteval, waitingAtMostForAllAcksTimeUnit.toChronoUnit()),
-          Duration.of(
               waitingForTheConsumerAtMostInterval,
               waitingForTheConsumerAtMostTimeUnit.toChronoUnit()));
     }
@@ -171,14 +183,14 @@ public final class KafkaesqueProducer<Key, Value> {
       validateRecords();
       validateSerializers();
     }
-  
+
     private void validateProducerDelegateFunction() {
       if (creationInfoFunction == null) {
         throw new IllegalArgumentException(
             "The function creating the producer delegate cannot be null");
       }
     }
-  
+
     private void validateTopic() {
       if (topic == null || topic.isBlank()) {
         throw new IllegalArgumentException("The topic name cannot be empty");

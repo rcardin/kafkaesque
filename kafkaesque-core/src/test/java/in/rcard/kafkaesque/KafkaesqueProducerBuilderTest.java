@@ -55,12 +55,7 @@ class KafkaesqueProducerBuilderTest {
   void waitingAtMostForEachAckShouldReturnTheSameInstanceOfTheBuilder() {
     assertThat(builder.waitingAtMostForEachAck(42L, TimeUnit.SECONDS)).isEqualTo(builder);
   }
-
-  @Test
-  void waitingAtMostForAllAcksShouldReturnTheSameInstanceOfTheBuilder() {
-    assertThat(builder.waitingAtMostForAllAcks(42L, TimeUnit.SECONDS)).isEqualTo(builder);
-  }
-
+  
   @Test
   void waitingForTheConsumerAtMostShouldReturnTheSameInstanceOfTheBuilder() {
     assertThat(builder.waitingForTheConsumerAtMost(42L, TimeUnit.SECONDS)).isEqualTo(builder);

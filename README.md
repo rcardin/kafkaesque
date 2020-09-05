@@ -55,7 +55,6 @@ Kafkaesque
   .withDeserializers(keyDeserializer, valueDeserializer)
   .messages( /* Some list of messages */)
   .waitingAtMostForEachAck(100, MILLISECONDS) // Waiting time for each ack from the broker
-  .waitingAtMostForAllAcks(10, SECONDS)
   .waitingForTheConsumerAtMost(10, SECONDS) // Waiting time for the consumer to read one / all the messages
   .expecting() // build method that effectively create a producer
   .assertingAfterEach(message -> { // <- This method produce a message and asserts imme
