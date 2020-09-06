@@ -16,7 +16,7 @@ import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.test.EmbeddedKafkaBroker;
 import org.springframework.kafka.test.context.EmbeddedKafka;
 
-@SpringBootTest(classes = {TestConfiguration.class})
+@SpringBootTest(classes = { TestConfiguration.class })
 @EmbeddedKafka(
     partitions = 1,
     topics = { "test" }
