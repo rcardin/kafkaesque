@@ -185,7 +185,7 @@ public class KafkaesqueConsumer<Key, Value> {
     }
 
     /**
-     * Creates a concrete instance of the {@link KafkaesqueConsumer}. Before the creation, performs
+     * Creates an instance of the {@link KafkaesqueConsumer}. Before the creation, performs
      * a set of validation steps.
      *
      * @return An instance of the {@link KafkaesqueConsumer}

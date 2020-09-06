@@ -70,7 +70,7 @@ public final class KafkaesqueProducer<Key, Value> {
       Awaitility.await()
           .atMost(waitForConsumerDuration)
           .untilAsserted(() -> messageConsumer.accept(record));
-    } catch (ConditionTimeoutException ctex) {
+    } catch (ConditionTimeoutException ex) {
       throw new AssertionError(
           String.format(
               "The consuming of the message %s takes more than %d milliseconds",
@@ -112,7 +112,7 @@ public final class KafkaesqueProducer<Key, Value> {
       Awaitility.await()
           .atMost(waitForConsumerDuration)
           .untilAsserted(() -> messagesConsumer.accept(records));
-    } catch (ConditionTimeoutException ctex) {
+    } catch (ConditionTimeoutException ex) {
       throw new AssertionError(
           String.format(
               "The consuming of the list of messages %s takes more than %d milliseconds",
@@ -175,36 +175,69 @@ public final class KafkaesqueProducer<Key, Value> {
             creationInfoFunction) {
       return new Builder<>(creationInfoFunction);
     }
-
+  
+    /**
+     * Sets the topic to write to. This information is mandatory.
+     * @param topic The name of the topic
+     */
     public Builder<Key, Value> toTopic(String topic) {
       this.topic = topic;
       return this;
     }
-
+  
+    /**
+     * Sets the serializers for the keys and values of the messages. This information is mandatory.
+     * @param keySerializer The key serializer
+     * @param valueSerializer The value serializer
+     */
     public Builder<Key, Value> withSerializers(
         Serializer<Key> keySerializer, Serializer<Value> valueSerializer) {
       this.keySerializer = keySerializer;
       this.valueSerializer = valueSerializer;
       return this;
     }
-
+  
+    /**
+     * Sets the list of messages to write to the target topic. This information is mandatory.
+     * @param records The list of messages
+     */
     public Builder<Key, Value> messages(List<ProducerRecord<Key, Value>> records) {
       this.records = records;
       return this;
     }
 
+    /**
+     * Sets the time interval to wait for each ack from the broker. This information is optional.
+     * The default values are {@code 200L} and * {@code TimeUnit.MILLISECOND}.
+     *
+     * @param interval Time interval
+     * @param unit Unit of the time interval
+     */
     public Builder<Key, Value> waitingAtMostForEachAck(long interval, TimeUnit unit) {
       this.waitingAtMostForEachAckInterval = interval;
       this.waitingAtMostForEachAckTimeUnit = unit;
       return this;
     }
-
+  
+    /**
+     * Sets the time interval to wait for the consumer to run on the sent messages. This information
+     * is optional. The default values are {@code 500L} and * {@code TimeUnit.MILLISECOND}.
+     *
+     * @param interval Time interval
+     * @param unit Unit of the time interval
+     */
     public Builder<Key, Value> waitingForTheConsumerAtMost(long interval, TimeUnit unit) {
       this.waitingForTheConsumerAtMostInterval = interval;
       this.waitingForTheConsumerAtMostTimeUnit = unit;
       return this;
     }
 
+    /**
+     * Creates an instance of the {@link KafkaesqueProducer}. Before the creation, performs a set of
+     * validation steps.
+     *
+     * @return An instance of the {@link KafkaesqueProducer}
+     */
     public KafkaesqueProducer<Key, Value> expecting() {
       validateInputs();
       final KafkaesqueProducerDelegate<Key, Value> producerDelegate =
@@ -254,12 +287,20 @@ public final class KafkaesqueProducer<Key, Value> {
   }
 
   /**
-   * Sends the record to the embedded Kafka broker.
+   * Represents the concrete Kafka producer that uses a specific technology or library as
+   * implementation (e.g. <a href="https://spring.io/projects/spring-kafka" target="_blank">Spring
+   * Kafka</a>). It sends the records to the embedded Kafka broker.
    *
-   * @param <Key> The type of the message's key
-   * @param <Value> The type of the message's value
+   * @param <Key> The type of the messages' key
+   * @param <Value> The type of the messages' value
    */
   interface KafkaesqueProducerDelegate<Key, Value> {
+  
+    /**
+     * Sends the {@code record} to the embedded Kafka broker.
+     * @param record The message to send
+     * @return A future on the result of the sending operation
+     */
     CompletableFuture<RecordMetadata> sendRecord(ProducerRecord<Key, Value> record);
 
     class DelegateCreationInfo<Key, Value> {
@@ -273,7 +314,7 @@ public final class KafkaesqueProducer<Key, Value> {
         this.keySerializer = keySerializer;
         this.valueSerializer = valueSerializer;
       }
-
+  
       public String getTopic() {
         return topic;
       }
