@@ -80,7 +80,8 @@ class SpringKafkaesqueTest {
         .expecting()
         .poll()
         .havingRecordsSize(2)
-        .assertingThatPayloads(Matchers.containsInAnyOrder("data1", "data2"));
+        .assertingThatPayloads(Matchers.containsInAnyOrder("data1", "data2"))
+        .andCloseConsumer();
   }
 
   @Test

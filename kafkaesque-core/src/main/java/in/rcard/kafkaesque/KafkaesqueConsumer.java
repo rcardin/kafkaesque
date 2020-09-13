@@ -49,7 +49,7 @@ public class KafkaesqueConsumer<Key, Value> {
    *
    * @return The read messages
    */
-  public ConsumedResults<Key, Value> poll() {
+  public ConsumedResultsAndKafkaesqueConsumerDelegate<Key, Value> poll() {
     try {
       final AtomicInteger emptyCycles = new AtomicInteger(emptyPollsCount);
       final List<ConsumerRecord<Key, Value>> readMessages = new ArrayList<>();
@@ -63,7 +63,10 @@ public class KafkaesqueConsumer<Key, Value> {
                 }
                 return false;
               });
-      return new ConsumedResults<>(readMessages);
+      return new ConsumedResultsAndKafkaesqueConsumerDelegate<>(
+          new ConsumedResults<>(readMessages),
+          this
+      );
     } catch (ConditionTimeoutException ctex) {
       throw new AssertionError(
           String.format(
