@@ -50,25 +50,25 @@ public interface Kafkaesque {
         .stream();
   }
 
-  private static Set<Class<? extends Kafkaesque>> findClassesImplementingKafkaesque() {
+  static Set<Class<? extends Kafkaesque>> findClassesImplementingKafkaesque() {
     final Reflections reflections = new Reflections("in.rcard.kafkaesque");
     return reflections.getSubTypesOf(Kafkaesque.class);
   }
 
-  private static void validateKafkaesqueClasses(
+  static void validateKafkaesqueClasses(
       Set<Class<? extends Kafkaesque>> kafkaesqueClasses) {
     verifyIfAnyKafkaesqueClassWasFound(kafkaesqueClasses);
     verifyIfMoreThanOneKafkaesqueClassWasFound(kafkaesqueClasses);
   }
 
-  private static void verifyIfAnyKafkaesqueClassWasFound(
+  static void verifyIfAnyKafkaesqueClassWasFound(
       Set<Class<? extends Kafkaesque>> kafkaesqueClasses) {
     if (kafkaesqueClasses == null || kafkaesqueClasses.size() == 0) {
       throw new IllegalStateException("No implementation of a Kafkaesque class was found");
     }
   }
 
-  private static void verifyIfMoreThanOneKafkaesqueClassWasFound(
+  static void verifyIfMoreThanOneKafkaesqueClassWasFound(
       Set<Class<? extends Kafkaesque>> kafkaesqueClasses) {
     if (kafkaesqueClasses.size() > 1) {
       throw new IllegalStateException(

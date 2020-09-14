@@ -188,18 +188,21 @@ public class KafkaesqueConsumer<Key, Value> {
     }
 
     /**
-     * Creates an instance of the {@link KafkaesqueConsumer}. Before the creation, performs
-     * a set of validation steps.
+     * Creates an instance of the {@link KafkaesqueConsumer} and polls for messages. Before the
+     * creation, it performs a set of validation steps.
      *
-     * @return An instance of the {@link KafkaesqueConsumer}
+     * @return An instance of polled messages
+     * @see ConsumedResultsAndKafkaesqueConsumerDelegate
+     * @see ConsumedResults
      */
-    public KafkaesqueConsumer<Key, Value> expecting() {
+    public ConsumedResultsAndKafkaesqueConsumerDelegate<Key, Value> expecting() {
       validateInputs();
       final DelegateCreationInfo<Key, Value> creationInfo =
           new DelegateCreationInfo<>(topic, keyDeserializer, valueDeserializer);
-      return new KafkaesqueConsumer<>(
+      final KafkaesqueConsumer<Key, Value> consumer = new KafkaesqueConsumer<>(
           interval, timeUnit, emptyPollsCount, emptyPollsInterval, emptyPollsTimeUnit,
           consumerDelegateFunction.apply(creationInfo));
+      return consumer.poll();
     }
 
     private void validateInputs() {
