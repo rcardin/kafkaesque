@@ -78,7 +78,6 @@ class SpringKafkaesqueTest {
         .waitingEmptyPolls(5, 100L, TimeUnit.MILLISECONDS)
         .withDeserializers(new IntegerDeserializer(), new StringDeserializer())
         .expecting()
-        .poll()
         .havingRecordsSize(2)
         .assertingThatPayloads(Matchers.containsInAnyOrder("data1", "data2"))
         .andCloseConsumer();

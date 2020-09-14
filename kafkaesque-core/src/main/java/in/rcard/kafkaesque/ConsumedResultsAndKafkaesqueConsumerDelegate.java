@@ -12,6 +12,9 @@ import org.hamcrest.Matcher;
  *
  * @param <Key> The type of the messages' keys
  * @param <Value> The type of the messages' values
+ *
+ * @see ConsumedResults
+ * @see KafkaesqueConsumer
  */
 public class ConsumedResultsAndKafkaesqueConsumerDelegate<Key, Value> {
   private final ConsumedResults<Key, Value> results;

@@ -50,7 +50,8 @@ public class SpringKafkaesque implements Kafkaesque {
           container.start();
           ContainerTestUtils.waitForAssignment(
               container, embeddedKafkaBroker.getPartitionsPerTopic());
-
+  
+          //noinspection Convert2Diamond
           return new KafkaesqueConsumerDelegate<Key, Value>() {
             @Override
             public List<ConsumerRecord<Key, Value>> poll() {
@@ -58,7 +59,7 @@ public class SpringKafkaesque implements Kafkaesque {
               records.drainTo(newMessages);
               return newMessages;
             }
-
+  
             @Override
             public void close() {
               container.stop();

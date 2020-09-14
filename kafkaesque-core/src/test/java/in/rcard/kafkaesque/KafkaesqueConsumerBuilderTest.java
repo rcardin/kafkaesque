@@ -2,16 +2,22 @@ package in.rcard.kafkaesque;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
 
 import in.rcard.kafkaesque.KafkaesqueConsumer.Builder;
 import in.rcard.kafkaesque.KafkaesqueConsumer.KafkaesqueConsumerDelegate;
 import in.rcard.kafkaesque.KafkaesqueConsumer.KafkaesqueConsumerDelegate.DelegateCreationInfo;
+import in.rcard.kafkaesque.KafkaesqueProducer.KafkaesqueProducerDelegate;
+import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.BDDMockito;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -23,7 +29,11 @@ class KafkaesqueConsumerBuilderTest {
           DelegateCreationInfo<String, String>,
           ? extends KafkaesqueConsumerDelegate<String, String>>
       delegateCreator;
-
+  @Mock
+  private KafkaesqueConsumerDelegate<String, String> delegate;
+  @Mock
+  private ConsumerRecord<String, String> record;
+  
   private Builder<String, String> builder;
 
   @BeforeEach
@@ -95,11 +105,16 @@ class KafkaesqueConsumerBuilderTest {
 
   @Test
   void expectingShouldReturnANewInstanceOfAKafkaesqueConsumer() {
-    final KafkaesqueConsumer<String, String> consumer =
+    //noinspection unchecked
+    given(delegateCreator.apply(any(DelegateCreationInfo.class))).willReturn(delegate);
+    given(delegate.poll())
+        .willReturn(Collections.singletonList(record))
+        .willReturn(Collections.emptyList());
+    final ConsumedResultsAndKafkaesqueConsumerDelegate<String, String> consumer =
         builder
             .withDeserializers(new StringDeserializer(), new StringDeserializer())
             .fromTopic("topic")
-            .waitingAtMost(100L, TimeUnit.MILLISECONDS)
+            .waitingAtMost(1L, TimeUnit.SECONDS)
             .expecting();
     assertThat(consumer).isNotNull();
   }
