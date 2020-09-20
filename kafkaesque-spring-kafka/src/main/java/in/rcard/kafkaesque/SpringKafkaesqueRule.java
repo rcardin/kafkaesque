@@ -8,7 +8,7 @@ import org.springframework.kafka.test.rule.EmbeddedKafkaRule;
  */
 public class SpringKafkaesqueRule extends EmbeddedKafkaRule {
   
-  private SpringKafkaesque kafkaesque;
+  private final SpringKafkaesque kafkaesque;
   
   public SpringKafkaesqueRule(int count) {
     super(count);
