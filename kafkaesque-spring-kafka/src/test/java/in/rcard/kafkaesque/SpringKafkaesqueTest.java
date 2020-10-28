@@ -2,13 +2,13 @@ package in.rcard.kafkaesque;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import in.rcard.kafkaesque.KafkaesqueProducer.Record;
 import in.rcard.kafkaesque.SpringKafkaesqueTest.TestConfiguration;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.IntegerDeserializer;
 import org.apache.kafka.common.serialization.IntegerSerializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
@@ -89,9 +89,9 @@ class SpringKafkaesqueTest {
         .<Integer, String>produce()
         .messages(
             Arrays.asList(
-                new ProducerRecord<>(PRODUCER_TEST_TOPIC, 1, "value1"),
-                new ProducerRecord<>(PRODUCER_TEST_TOPIC, 2, "value2")))
-        .toTopic("test1")
+                Record.of(1, "value1"),
+                Record.of(2, "value2")))
+        .toTopic(PRODUCER_TEST_TOPIC)
         .withSerializers(new IntegerSerializer(), new StringSerializer())
         .expecting()
         .assertingAfterEach(

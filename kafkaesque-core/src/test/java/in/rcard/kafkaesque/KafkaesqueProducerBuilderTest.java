@@ -6,11 +6,11 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import in.rcard.kafkaesque.KafkaesqueProducer.Builder;
 import in.rcard.kafkaesque.KafkaesqueProducer.KafkaesqueProducerDelegate;
 import in.rcard.kafkaesque.KafkaesqueProducer.KafkaesqueProducerDelegate.DelegateCreationInfo;
+import in.rcard.kafkaesque.KafkaesqueProducer.Record;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
-import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -21,8 +21,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith({MockitoExtension.class})
 class KafkaesqueProducerBuilderTest {
 
-  private static final List<ProducerRecord<String, String>> MESSAGES =
-      Collections.singletonList(new ProducerRecord<>("topic", "key", "message"));
+  private static final List<Record<String, String>> MESSAGES =
+      Collections.singletonList(Record.of("key", "message"));
 
   @Mock
   private Function<DelegateCreationInfo<String, String>, KafkaesqueProducerDelegate<String, String>>

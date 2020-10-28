@@ -3,6 +3,7 @@ package in.rcard.kafkaesque;
 import in.rcard.kafkaesque.KafkaesqueProducer.KafkaesqueProducerDelegate.DelegateCreationInfo;
 import java.time.Duration;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -44,7 +45,7 @@ public final class KafkaesqueProducer<Key, Value> {
     this.forEachAckDuration = forEachAckDuration;
     this.waitForConsumerDuration = waitForConsumerDuration;
   }
-
+  
   /**
    * Asserts that some conditions hold on a single sent message.<br/>
    * For example:
@@ -134,6 +135,67 @@ public final class KafkaesqueProducer<Key, Value> {
           e);
     }
   }
+  
+  /**
+   * A record to a producer can send to a Kafka topic.
+   * @param <Key> The type of the key
+   * @param <Value> The type of the value
+   */
+  public static class Record<Key, Value> {
+    private final Key key;
+    private final Value value;
+    
+    private Record(Key key, Value value) {
+      this.key = key;
+      this.value = value;
+    }
+    
+    public static <Key, Value> Record<Key, Value> of(Key key, Value value) {
+      return new Record<>(key, value);
+    }
+    
+    public static <Key, Value> Record<Key, Value> of(ProducerRecord<Key, Value> producerRecord) {
+      return new Record<>(producerRecord.key(), producerRecord.value());
+    }
+    
+    public ProducerRecord<Key, Value> toPr(String topic) {
+      return new ProducerRecord<>(topic, key, value);
+    }
+    
+    public Key getKey() {
+      return key;
+    }
+    
+    public Value getValue() {
+      return value;
+    }
+    
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) {
+        return true;
+      }
+      if (o == null || getClass() != o.getClass()) {
+        return false;
+      }
+      Record<?, ?> record = (Record<?, ?>) o;
+      return Objects.equals(key, record.key) &&
+                 Objects.equals(value, record.value);
+    }
+    
+    @Override
+    public int hashCode() {
+      return Objects.hash(key, value);
+    }
+    
+    @Override
+    public String toString() {
+      return "Record{" +
+                 "key=" + key +
+                 ", value=" + value +
+                 '}';
+    }
+  }
 
   /**
    * Creates instances of {@link KafkaesqueProducer}.<br/>
@@ -154,7 +216,7 @@ public final class KafkaesqueProducer<Key, Value> {
     private String topic;
     private Serializer<Key> keySerializer;
     private Serializer<Value> valueSerializer;
-    private List<ProducerRecord<Key, Value>> records;
+    private List<Record<Key, Value>> records;
     private long waitingAtMostForEachAckInterval = 200L;
     private TimeUnit waitingAtMostForEachAckTimeUnit = TimeUnit.MILLISECONDS;
     private long waitingForTheConsumerAtMostInterval = 500L;
@@ -201,7 +263,7 @@ public final class KafkaesqueProducer<Key, Value> {
      * Sets the list of messages to write to the target topic. This information is mandatory.
      * @param records The list of messages
      */
-    public Builder<Key, Value> messages(List<ProducerRecord<Key, Value>> records) {
+    public Builder<Key, Value> messages(List<Record<Key, Value>> records) {
       this.records = records;
       return this;
     }
@@ -244,7 +306,7 @@ public final class KafkaesqueProducer<Key, Value> {
           creationInfoFunction.apply(
               new DelegateCreationInfo<>(topic, keySerializer, valueSerializer));
       return new KafkaesqueProducer<>(
-          records,
+          createProducerRecords(),
           producerDelegate,
           Duration.of(
               waitingAtMostForEachAckInterval, waitingAtMostForEachAckTimeUnit.toChronoUnit()),
@@ -252,7 +314,14 @@ public final class KafkaesqueProducer<Key, Value> {
               waitingForTheConsumerAtMostInterval,
               waitingForTheConsumerAtMostTimeUnit.toChronoUnit()));
     }
-
+  
+    private List<ProducerRecord<Key, Value>> createProducerRecords() {
+      return records
+                 .stream()
+                 .map(record -> record.toPr(topic))
+                 .collect(Collectors.toList());
+    }
+  
     private void validateInputs() {
       validateProducerDelegateFunction();
       validateTopic();
