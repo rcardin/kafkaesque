@@ -29,7 +29,11 @@ import org.springframework.kafka.test.utils.KafkaTestUtils;
 
 @SpringBootTest(classes = {TestConfiguration.class})
 @EmbeddedKafka(
-    topics = {SpringKafkaesqueTest.CONSUMER_TEST_TOPIC, SpringKafkaesqueTest.PRODUCER_TEST_TOPIC})
+    topics = {
+        SpringKafkaesqueTest.CONSUMER_TEST_TOPIC,
+        SpringKafkaesqueTest.PRODUCER_TEST_TOPIC
+    }
+)
 class SpringKafkaesqueTest {
 
   static final String CONSUMER_TEST_TOPIC = "test";
@@ -87,10 +91,7 @@ class SpringKafkaesqueTest {
   void produceShouldProduceMessageForOutsideConsumer() {
     new SpringKafkaesque(broker)
         .<Integer, String>produce()
-        .messages(
-            Arrays.asList(
-                Record.of(1, "value1"),
-                Record.of(2, "value2")))
+        .messages(Arrays.asList(Record.of(1, "value1"), Record.of(2, "value2")))
         .toTopic(PRODUCER_TEST_TOPIC)
         .withSerializers(new IntegerSerializer(), new StringSerializer())
         .expecting()

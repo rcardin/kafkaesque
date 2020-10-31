@@ -66,4 +66,110 @@ Kafkaesque
   });
 ```
 
-More to come!
+## Modules
+
+### Core module
+
+The _Kafkaesque_ library contains many submodules. The `core` module contains the interfaces and 
+agnostic concrete classes offering the above fluid API.
+
+In detail, the `core` module uses the [Awaitility](http://www.awaitility.org/) Java library to deal
+with the asynchronicity nature of each of the above use cases.
+
+### Kafkaesque for Spring Kafka
+
+The only concrete instantiation of the library is the `kafkaesque-spring-kafka` module, which adds 
+features to the `spring-kafka-test` library made by Spring.
+
+Add the following dependency to your `pom.xml` file to use the `kafkaesque-spring-kafka`.
+
+```xml
+<dependency>
+	<groupId>in.rcard</groupId>
+	<artifactId>kafkaesque-spring-kafka</artifactId>
+	<version>0.2.0-SNAPSHOT</version>
+	<scope>test</scope>
+</dependency>
+```
+
+Since the library is published in the GitHub Packages repository, you need to add also the following
+definition to your `pom.xml`:
+
+```xml
+<repository>
+	<id>github</id>
+	<name>GitHub rcardin Apache Maven Packages</name>
+	<url>https://maven.pkg.github.com/rcardin/kafkaesque</url>
+</repository>
+``` 
+
+#### JUnit 4
+
+Create a test for JUnit 4 is easy, just create an instance of the `SpringKafkaesqueRule` class:
+
+```java
+@SpringBootTest
+public class SpringKafkaesqueRuleTest {
+  @ClassRule
+  public static final SpringKafkaesqueRule kafkaesqueRule =
+      new SpringKafkaesqueRule(1, false, "test");
+
+  @Test
+  public void aTest() {
+    // Code producing messages
+    // ...
+    kafkaesqueRule.getKafkaesque()
+        .<Integer, String>consume()
+        .fromTopic("test")
+        .waitingAtMost(1L, TimeUnit.SECONDS)
+        .waitingEmptyPolls(5, 100L, TimeUnit.MILLISECONDS)
+        .withDeserializers(new IntegerDeserializer(), new StringDeserializer())
+        .expecting()
+        .havingRecordsSize(2)
+        .assertingThatPayloads(Matchers.containsInAnyOrder("data1", "data2"))
+        .andCloseConsumer();
+  }
+}
+```
+
+#### JUnit 5
+
+Instead, to create a test for the JUnit 5 test framework we need first to create the instance of the
+`EmbeddedKafkaBroker`.
+
+```java
+@SpringBootTest(classes = {TestConfiguration.class})
+@EmbeddedKafka(
+    topics = {
+        SpringKafkaesqueTest.CONSUMER_TEST_TOPIC, 
+        SpringKafkaesqueTest.PRODUCER_TEST_TOPIC
+    }
+)
+class SpringKafkaesqueTest {
+
+  static final String CONSUMER_TEST_TOPIC = "test";
+  static final String PRODUCER_TEST_TOPIC = "test1";
+
+  @Autowired 
+  private EmbeddedKafkaBroker broker;
+
+  @Test
+  void consumeShouldConsumeMessagesProducesFromOutsideProducer() {
+    // Code producing messages
+    // ...
+    Kafkaesque
+        .usingBroker(broker)
+        .<Integer, String>consume()
+        .fromTopic(CONSUMER_TEST_TOPIC)
+        .waitingAtMost(1L, TimeUnit.SECONDS)
+        .waitingEmptyPolls(5, 100L, TimeUnit.MILLISECONDS)
+        .withDeserializers(new IntegerDeserializer(), new StringDeserializer())
+        .expecting()
+        .havingRecordsSize(2)
+        .assertingThatPayloads(Matchers.containsInAnyOrder("data1", "data2"))
+        .andCloseConsumer();
+  }
+}
+```
+
+
