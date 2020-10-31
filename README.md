@@ -1,5 +1,5 @@
 ![](https://github.com/rcardin/kafkaesque/workflows/Kafkaesque/badge.svg)
-[![GitHub Package Registry version](https://img.shields.io/github/release/github/learning-lab-components.svg?label=spring-kafkaesque&logo=github)](https://github.com/rcardin/kafkaesque/packages/436721)
+[![GitHub Package Registry version](https://img.shields.io/github/v/release/rcardin/kafkaesque)]()
 
 GPR label with GitHub mark logo
 
