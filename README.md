@@ -66,7 +66,7 @@ Kafkaesque
   });
 ```
 
-## Use Case 3: Synchronize on produced or consumed messages and test them outside Kafkaesque
+## Use Case 3: Synchronize on Produced or Consumed Messages and Test Them Outside Kafkaesque
 
 The [`kafka-streams-test-utils`](https://kafka.apache.org/documentation/streams/developer-guide/testing.html) testing library offers to developers some useful and powerful 
 abstractions. Indeed, the `TestInputTopic` and the `TestOutputTopic` let developers to manage 
