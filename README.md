@@ -66,6 +66,28 @@ Kafkaesque
   });
 ```
 
+## Use Case 3: Synchronize on produced or consumed messages and test them outside Kafkaesque
+
+The [`kafka-streams-test-utils`](https://kafka.apache.org/documentation/streams/developer-guide/testing.html) testing library offers to developers some useful and powerful 
+abstractions. Indeed, the `TestInputTopic` and the `TestOutputTopic` let developers to manage 
+asynchronous communication with a broker as it is fully synchronous. In this case, the library does
+not start any broker, not even embedded.
+
+Kafkaesque **will** offer to developers the same abstractions, trying to achieve the same 
+synchronous behavior. 
+
+```
+var kafkaesque = Kafkaesque.usingBroker(embeddedBroker);
+var inputTopic = kafkaesque.createInputTopic("inputTopic", keySerializer, valueSerializer);
+inputTopic.pipeInput("key", "value");
+
+var outputTopic = kafkaesque.createOutputTopic("outputTopic", keyDeserializer, valueDeserializer);
+var records = outputTopic.readRecordsToList();
+
+```
+
+The feature is currently under development.
+
 ## Modules
 
 ### Core module
