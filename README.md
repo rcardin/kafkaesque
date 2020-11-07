@@ -83,7 +83,6 @@ inputTopic.pipeInput("key", "value");
 
 var outputTopic = kafkaesque.createOutputTopic("outputTopic", keyDeserializer, valueDeserializer);
 var records = outputTopic.readRecordsToList();
-
 ```
 
 The feature is currently under development.
