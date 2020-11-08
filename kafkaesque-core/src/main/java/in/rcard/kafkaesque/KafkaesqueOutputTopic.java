@@ -20,7 +20,8 @@ public class KafkaesqueOutputTopic<Key, Value> {
     consumerBuilder
         .expecting()
         .havingConsumerRecords(
-            consumerRecords -> consumerRecords.forEach(record -> messages.add(Message.of(record))));
+            consumerRecords -> consumerRecords.forEach(record -> messages.add(Message.of(record))))
+        .andCloseConsumer();
     return messages;
   }
   
