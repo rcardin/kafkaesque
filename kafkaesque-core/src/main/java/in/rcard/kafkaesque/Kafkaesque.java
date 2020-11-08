@@ -30,11 +30,11 @@ public interface Kafkaesque {
 
   default <Key, Value> KafkaesqueOutputTopic<Key, Value> createOutputTopic(
       String topic, Deserializer<Key> keyDeserializer, Deserializer<Value> valueDeserializer) {
-    this.<Key, Value>consume()
-        .fromTopic(topic)
-        .withDeserializers(keyDeserializer, valueDeserializer);
-    // TODO
-    return null;
+    final KafkaesqueConsumer.Builder<Key, Value> builder =
+        this.<Key, Value>consume()
+            .fromTopic(topic)
+            .withDeserializers(keyDeserializer, valueDeserializer);
+    return new KafkaesqueOutputTopic<>(builder);
   }
 
   static <K> Kafkaesque usingBroker(K embeddedKafka) {
