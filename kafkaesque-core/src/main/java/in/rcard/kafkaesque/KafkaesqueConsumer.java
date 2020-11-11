@@ -49,7 +49,7 @@ public class KafkaesqueConsumer<Key, Value> {
    *
    * @return The read messages
    */
-  public ConsumedResultsAndKafkaesqueConsumerDelegate<Key, Value> poll() {
+  ConsumedResultsAndKafkaesqueConsumerDelegate<Key, Value> poll() {
     try {
       final AtomicInteger emptyCycles = new AtomicInteger(emptyPollsCount);
       final List<ConsumerRecord<Key, Value>> readMessages = new ArrayList<>();
