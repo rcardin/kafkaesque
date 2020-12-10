@@ -4,17 +4,38 @@ import static org.reflections.ReflectionUtils.getAllConstructors;
 import static org.reflections.ReflectionUtils.withParameters;
 import static org.reflections.ReflectionUtils.withParametersCount;
 
+import in.rcard.kafkaesque.KafkaesqueProducer.Builder;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Set;
 import java.util.stream.Stream;
+import org.apache.kafka.common.serialization.Deserializer;
+import org.apache.kafka.common.serialization.Serializer;
 import org.reflections.Reflections;
 
 public interface Kafkaesque {
-  
+
   <Key, Value> KafkaesqueConsumer.Builder<Key, Value> consume();
 
   <Key, Value> KafkaesqueProducer.Builder<Key, Value> produce();
+
+  default <Key, Value> KafkaesqueInputTopic<Key, Value> createInputTopic(
+      String topic, Serializer<Key> keySerializer, Serializer<Value> valueSerializer) {
+    final Builder<Key, Value> builder =
+        this.<Key, Value>produce()
+            .toTopic(topic)
+            .withSerializers(keySerializer, valueSerializer);
+    return new KafkaesqueInputTopic<>(builder);
+  }
+
+  default <Key, Value> KafkaesqueOutputTopic<Key, Value> createOutputTopic(
+      String topic, Deserializer<Key> keyDeserializer, Deserializer<Value> valueDeserializer) {
+    final KafkaesqueConsumer.Builder<Key, Value> builder =
+        this.<Key, Value>consume()
+            .fromTopic(topic)
+            .withDeserializers(keyDeserializer, valueDeserializer);
+    return new KafkaesqueOutputTopic<>(builder);
+  }
 
   static <K> Kafkaesque usingBroker(K embeddedKafka) {
     final Set<Class<? extends Kafkaesque>> kafkaesqueClasses = findClassesImplementingKafkaesque();
@@ -27,7 +48,8 @@ public interface Kafkaesque {
   }
 
   static IllegalStateException makeNoConstructorFoundException() {
-    return new IllegalStateException("No method found to build a new instance of the Kafkaesque class");
+    return new IllegalStateException(
+        "No method found to build a new instance of the Kafkaesque class");
   }
 
   static <K> Kafkaesque buildNewKafkaesqueInstance(K embeddedKafka, Constructor<?> ctor) {
@@ -55,8 +77,7 @@ public interface Kafkaesque {
     return reflections.getSubTypesOf(Kafkaesque.class);
   }
 
-  static void validateKafkaesqueClasses(
-      Set<Class<? extends Kafkaesque>> kafkaesqueClasses) {
+  static void validateKafkaesqueClasses(Set<Class<? extends Kafkaesque>> kafkaesqueClasses) {
     verifyIfAnyKafkaesqueClassWasFound(kafkaesqueClasses);
     verifyIfMoreThanOneKafkaesqueClassWasFound(kafkaesqueClasses);
   }
