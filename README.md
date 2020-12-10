@@ -107,10 +107,10 @@ Add the following dependency to your `pom.xml` file to use the `kafkaesque-sprin
 
 ```xml
 <dependency>
-	<groupId>in.rcard</groupId>
-	<artifactId>kafkaesque-spring-kafka</artifactId>
-	<version>0.2.0-SNAPSHOT</version>
-	<scope>test</scope>
+  <groupId>in.rcard</groupId>
+  <artifactId>kafkaesque-spring-kafka</artifactId>
+  <version>0.3.0-SNAPSHOT</version>
+  <scope>test</scope>
 </dependency>
 ```
 
@@ -119,9 +119,9 @@ definition to your `pom.xml`:
 
 ```xml
 <repository>
-	<id>github</id>
-	<name>GitHub rcardin Apache Maven Packages</name>
-	<url>https://maven.pkg.github.com/rcardin/kafkaesque</url>
+  <id>github</id>
+  <name>GitHub rcardin Apache Maven Packages</name>
+  <url>https://maven.pkg.github.com/rcardin/kafkaesque</url>
 </repository>
 ``` 
 
