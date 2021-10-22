@@ -8,11 +8,11 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
+import java.util.concurrent.CompletableFuture;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
-import org.apache.kafka.clients.producer.Callback;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerConfig;
@@ -81,13 +81,18 @@ public class LiveKafkaesque implements Kafkaesque {
               creationInfo.getValueSerializer().getClass());
           Producer<Key, Value> producer = new KafkaProducer<>(props);
           return record -> {
-            producer.send(record, new Callback() {
-              @Override
-              public void onCompletion(RecordMetadata metadata, Exception exception) {
-                // TODO
-              }
-            })
-          }
+            CompletableFuture<RecordMetadata> promiseOnMetadata = new CompletableFuture<>();
+            producer.send(
+                record,
+                (metadata, exception) -> {
+                  if (exception == null) {
+                    promiseOnMetadata.complete(metadata);
+                  } else {
+                    promiseOnMetadata.completeExceptionally(exception);
+                  }
+                });
+            return promiseOnMetadata;
+          };
         });
   }
 }
