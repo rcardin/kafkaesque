@@ -8,6 +8,7 @@ import in.rcard.kafkaesque.KafkaesqueProducer.Builder;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.serialization.Serializer;
@@ -33,7 +34,9 @@ public interface Kafkaesque {
     final KafkaesqueConsumer.Builder<Key, Value> builder =
         this.<Key, Value>consume()
             .fromTopic(topic)
-            .withDeserializers(keyDeserializer, valueDeserializer);
+            .withDeserializers(keyDeserializer, valueDeserializer)
+            .waitingAtMost(1L, TimeUnit.MINUTES)
+            .waitingEmptyPolls(10, 1000L, TimeUnit.MILLISECONDS);
     return new KafkaesqueOutputTopic<>(builder);
   }
 

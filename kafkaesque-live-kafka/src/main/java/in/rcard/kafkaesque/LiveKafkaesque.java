@@ -2,13 +2,13 @@ package in.rcard.kafkaesque;
 
 import in.rcard.kafkaesque.KafkaesqueConsumer.Builder;
 import in.rcard.kafkaesque.KafkaesqueConsumer.KafkaesqueConsumerDelegate;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
+import in.rcard.kafkaesque.KafkaesqueConsumer.KafkaesqueConsumerDelegate.DelegateCreationInfo;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
@@ -29,11 +29,13 @@ public class LiveKafkaesque implements Kafkaesque {
   @Override
   public <Key, Value> Builder<Key, Value> consume() {
     return Builder.newInstance(
-        creationInfo -> {
-          try {
+        new Function<DelegateCreationInfo<Key, Value>, KafkaesqueConsumerDelegate<Key, Value>>() {
+          @Override
+          public KafkaesqueConsumerDelegate<Key, Value> apply(
+              DelegateCreationInfo<Key, Value> creationInfo) {
             final Properties props = new Properties();
-            props.put(ConsumerConfig.CLIENT_ID_CONFIG, InetAddress.getLocalHost().getHostName());
             props.put(ConsumerConfig.GROUP_ID_CONFIG, "kafkaesque-consumer");
+            props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
             props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, brokersUrl);
             props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "true");
             props.put(
@@ -42,14 +44,13 @@ public class LiveKafkaesque implements Kafkaesque {
             props.put(
                 ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG,
                 creationInfo.getValueDeserializer().getClass());
-            final KafkaConsumer<Key, Value> kafkaConsumer = new KafkaConsumer<>(props);
-            kafkaConsumer.subscribe(List.of(creationInfo.getTopic()));
+            final KafkaConsumer<Key, Value> consumer = new KafkaConsumer<>(props);
+            consumer.subscribe(List.of(creationInfo.getTopic()));
 
             return new KafkaesqueConsumerDelegate<>() {
               @Override
               public List<ConsumerRecord<Key, Value>> poll() {
-                final ConsumerRecords<Key, Value> polled =
-                    kafkaConsumer.poll(Duration.ofMinutes(1L));
+                final ConsumerRecords<Key, Value> polled = consumer.poll(Duration.ofMillis(50L));
                 final List<ConsumerRecord<Key, Value>> records = new ArrayList<>();
                 polled.records(creationInfo.getTopic()).forEach(records::add);
                 return records;
@@ -57,12 +58,9 @@ public class LiveKafkaesque implements Kafkaesque {
 
               @Override
               public void close() {
-                kafkaConsumer.close();
+                consumer.close();
               }
             };
-
-          } catch (UnknownHostException e) {
-            throw new IllegalStateException(e);
           }
         });
   }
@@ -72,6 +70,7 @@ public class LiveKafkaesque implements Kafkaesque {
     return new KafkaesqueProducer.Builder<>(
         creationInfo -> {
           final Properties props = new Properties();
+          props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, brokersUrl);
           props.put(ProducerConfig.ACKS_CONFIG, "all");
           props.put(
               ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG,

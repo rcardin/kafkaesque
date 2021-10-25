@@ -59,7 +59,8 @@ public class KafkaesqueConsumer<Key, Value> {
           .until(
               () -> {
                 if (readNewMessages(readMessages) == 0) {
-                  return emptyCycles.decrementAndGet() == 0;
+                  final int remainingCycles = emptyCycles.decrementAndGet();
+                  return remainingCycles == 0;
                 }
                 return false;
               });
@@ -110,8 +111,8 @@ public class KafkaesqueConsumer<Key, Value> {
     private String topic;
     private Deserializer<Key> keyDeserializer;
     private Deserializer<Value> valueDeserializer;
-    private long interval = 200;
-    private TimeUnit timeUnit = TimeUnit.MILLISECONDS;
+    private long interval = 60;
+    private TimeUnit timeUnit = TimeUnit.SECONDS;
     private int emptyPollsCount = 2;
     private long emptyPollsInterval = 50L;
     private TimeUnit emptyPollsTimeUnit = TimeUnit.MILLISECONDS;
