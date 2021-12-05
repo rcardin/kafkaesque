@@ -91,7 +91,11 @@ public class LiveKafkaesque implements Kafkaesque {
                       // the consumer starts to poll messages. So, we forced the consumer to poll
                       // from the topic and we wait until the consumer is assigned to the topic.
                       consumer.poll(Duration.ofMillis(100));
-                      return latch.getCount() == 0;
+                      final boolean assigned = latch.getCount() == 0;
+                      if (assigned) {
+                        consumer.seekToBeginning(consumer.assignment());
+                      }
+                      return assigned;
                     });
           }
         });
