@@ -53,13 +53,17 @@ public class KafkaesqueConsumer<Key, Value> {
     try {
       final AtomicInteger emptyCycles = new AtomicInteger(emptyPollsCount);
       final List<ConsumerRecord<Key, Value>> readMessages = new ArrayList<>();
+//      System.out.println("Empty cycles to await: " + emptyPollsCount);
       Awaitility.await()
           .atMost(interval, timeUnit)
           .pollInterval(emptyPollsInterval, emptyPollsTimeUnit)
           .until(
               () -> {
                 if (readNewMessages(readMessages) == 0) {
-                  return emptyCycles.decrementAndGet() == 0;
+                  final int remainingCycles = emptyCycles.decrementAndGet();
+//                  System.out.println("Remaining empty cycles: " + remainingCycles);
+//                  System.out.println(System.currentTimeMillis());
+                  return remainingCycles == 0;
                 }
                 return false;
               });
@@ -110,8 +114,8 @@ public class KafkaesqueConsumer<Key, Value> {
     private String topic;
     private Deserializer<Key> keyDeserializer;
     private Deserializer<Value> valueDeserializer;
-    private long interval = 200;
-    private TimeUnit timeUnit = TimeUnit.MILLISECONDS;
+    private long interval = 60;
+    private TimeUnit timeUnit = TimeUnit.SECONDS;
     private int emptyPollsCount = 2;
     private long emptyPollsInterval = 50L;
     private TimeUnit emptyPollsTimeUnit = TimeUnit.MILLISECONDS;
