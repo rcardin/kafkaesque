@@ -6,21 +6,25 @@ import in.rcard.kafkaesque.KafkaesqueOutputTopic.Message;
 import in.rcard.kafkaesque.KafkaesqueProducer.Record;
 import java.time.Duration;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
-import java.util.concurrent.ExecutionException;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.clients.consumer.ConsumerRebalanceListener;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.serialization.IntegerDeserializer;
 import org.apache.kafka.common.serialization.IntegerSerializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
+import org.awaitility.Awaitility;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -82,13 +86,15 @@ class LiveKafkaesqueTest {
   
   @Test
   void consumeShouldConsumeMessagesProducesFromOutsideProducer() {
+
     producer.send(new ProducerRecord<>(CONSUMER_TEST_TOPIC, 1, "data1"));
     producer.send(new ProducerRecord<>(CONSUMER_TEST_TOPIC, 2, "data2"));
+    
     new LiveKafkaesque(brokerUrl)
         .<Integer, String>consume()
         .fromTopic(CONSUMER_TEST_TOPIC)
         .waitingAtMost(60L, TimeUnit.SECONDS)
-        .waitingEmptyPolls(5, 100L, TimeUnit.MILLISECONDS)
+        .waitingEmptyPolls(5, 500L, TimeUnit.MILLISECONDS)
         .withDeserializers(new IntegerDeserializer(), new StringDeserializer())
         .expecting()
         .havingRecordsSize(2)
@@ -98,7 +104,7 @@ class LiveKafkaesqueTest {
   
   @Test
   void produceShouldProduceMessageForOutsideConsumer() {
-    consumer.subscribe(List.of(PRODUCER_TEST_TOPIC));
+    subscribeConsumerToTopic();
     new LiveKafkaesque(brokerUrl)
         .<Integer, String>produce()
         .messages(Arrays.asList(Record.of(1, "value1"), Record.of(2, "value2")))
@@ -116,6 +122,27 @@ class LiveKafkaesqueTest {
                   .hasFieldOrPropertyWithValue("key", record.key())
                   .hasFieldOrPropertyWithValue("value", record.value());
             });
+  }
+  
+  private void subscribeConsumerToTopic() {
+    CountDownLatch latch = new CountDownLatch(1);
+    consumer.subscribe(
+        List.of(PRODUCER_TEST_TOPIC),
+        new ConsumerRebalanceListener() {
+          @Override
+          public void onPartitionsRevoked(Collection<TopicPartition> partitions) {}
+
+          @Override
+          public void onPartitionsAssigned(Collection<TopicPartition> partitions) {
+            latch.countDown();
+          }
+        });
+    
+    Awaitility.await().atMost(1, TimeUnit.MINUTES).until(
+        () -> {
+          consumer.poll(Duration.ofMillis(100));
+          return latch.getCount() == 0;
+        });
   }
   
   @Test
@@ -138,8 +165,7 @@ class LiveKafkaesqueTest {
   }
   
   @Test
-  void createOutputTopicShouldCreateAStructureTheReadsFromTheBrokerTheMessages()
-      throws ExecutionException, InterruptedException {
+  void createOutputTopicShouldCreateAStructureTheReadsFromTheBrokerTheMessages() {
     producer.send(new ProducerRecord<>(CONSUMER_TEST_TOPIC_1, 300, "Three hundred"));
     producer.send(new ProducerRecord<>(CONSUMER_TEST_TOPIC_1, 400, "Four hundred"));
     final KafkaesqueOutputTopic<Integer, String> outputTopic =

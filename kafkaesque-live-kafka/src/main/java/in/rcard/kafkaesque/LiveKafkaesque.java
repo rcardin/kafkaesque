@@ -5,11 +5,15 @@ import in.rcard.kafkaesque.KafkaesqueConsumer.KafkaesqueConsumerDelegate;
 import in.rcard.kafkaesque.KafkaesqueConsumer.KafkaesqueConsumerDelegate.DelegateCreationInfo;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.clients.consumer.ConsumerRebalanceListener;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
@@ -17,6 +21,8 @@ import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.RecordMetadata;
+import org.apache.kafka.common.TopicPartition;
+import org.awaitility.Awaitility;
 
 public class LiveKafkaesque implements Kafkaesque {
 
@@ -45,8 +51,8 @@ public class LiveKafkaesque implements Kafkaesque {
                 ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG,
                 creationInfo.getValueDeserializer().getClass());
             final KafkaConsumer<Key, Value> consumer = new KafkaConsumer<>(props);
-            consumer.subscribe(List.of(creationInfo.getTopic()));
-
+            subscribeConsumerToTopic(consumer, creationInfo.getTopic());
+  
             return new KafkaesqueConsumerDelegate<>() {
               @Override
               public List<ConsumerRecord<Key, Value>> poll() {
@@ -61,6 +67,32 @@ public class LiveKafkaesque implements Kafkaesque {
                 consumer.close();
               }
             };
+          }
+  
+          private void subscribeConsumerToTopic(KafkaConsumer<Key, Value> consumer, String topic) {
+            CountDownLatch latch = new CountDownLatch(1);
+            consumer.subscribe(
+                List.of(topic),
+                new ConsumerRebalanceListener() {
+                  @Override
+                  public void onPartitionsRevoked(Collection<TopicPartition> partitions) {}
+
+                  @Override
+                  public void onPartitionsAssigned(Collection<TopicPartition> partitions) {
+                    latch.countDown();
+//                    System.out.println("Assigned");
+                  }
+                });
+            Awaitility.await()
+                .atMost(1, TimeUnit.MINUTES)
+                .until(
+                    () -> {
+                      // The actual assignment of a topic to a consumer is done after a while
+                      // the consumer starts to poll messages. So, we forced the consumer to poll
+                      // from the topic and we wait until the consumer is assigned to the topic.
+                      consumer.poll(Duration.ofMillis(100));
+                      return latch.getCount() == 0;
+                    });
           }
         });
   }

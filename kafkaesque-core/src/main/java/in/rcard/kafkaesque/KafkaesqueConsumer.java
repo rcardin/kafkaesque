@@ -53,6 +53,7 @@ public class KafkaesqueConsumer<Key, Value> {
     try {
       final AtomicInteger emptyCycles = new AtomicInteger(emptyPollsCount);
       final List<ConsumerRecord<Key, Value>> readMessages = new ArrayList<>();
+//      System.out.println("Empty cycles to await: " + emptyPollsCount);
       Awaitility.await()
           .atMost(interval, timeUnit)
           .pollInterval(emptyPollsInterval, emptyPollsTimeUnit)
@@ -60,6 +61,8 @@ public class KafkaesqueConsumer<Key, Value> {
               () -> {
                 if (readNewMessages(readMessages) == 0) {
                   final int remainingCycles = emptyCycles.decrementAndGet();
+//                  System.out.println("Remaining empty cycles: " + remainingCycles);
+//                  System.out.println(System.currentTimeMillis());
                   return remainingCycles == 0;
                 }
                 return false;
