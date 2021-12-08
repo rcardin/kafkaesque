@@ -193,8 +193,8 @@ public class KafkaesqueConsumerNew<Key, Value> {
     }
   
     private static void validateBrokerUrl(String brokerUrl) {
-      if (brokerUrl == null) {
-        throw new IllegalArgumentException("The broker url cannot be null");
+      if (brokerUrl == null || brokerUrl.isEmpty()) {
+        throw new IllegalArgumentException("The broker url cannot be empty");
       }
     }
   

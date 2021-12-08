@@ -1,7 +1,5 @@
 package in.rcardin.kafkaesque.niu;
 
-import in.rcardin.kafkaesque.niu.KafkaesqueConsumerNew.Builder;
-
 public final class KafkaesqueNew {
   
   private final String brokersUrl;
@@ -11,10 +9,12 @@ public final class KafkaesqueNew {
   }
   
   <Key, Value> KafkaesqueConsumerNew.Builder<Key, Value> consume() {
-    return Builder.newInstance(brokersUrl);
+    return KafkaesqueConsumerNew.Builder.newInstance(brokersUrl);
   }
-//
-//  <Key, Value> Builder<Key, Value> produce();
+
+  <Key, Value> KafkaesqueProducerNew.Builder<Key, Value> produce() {
+    return KafkaesqueProducerNew.Builder.newInstance(brokersUrl);
+  }
 //
 //  default <Key, Value> KafkaesqueInputTopic<Key, Value> createInputTopic(
 //      String topic, Serializer<Key> keySerializer, Serializer<Value> valueSerializer) {
