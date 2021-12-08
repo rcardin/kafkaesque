@@ -18,7 +18,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith({MockitoExtension.class})
-class ConsumedResultsAndKafkaesqueConsumerDelegateTest {
+class ConsumedResultsAndKafkaesqueConsumerDelegateNewTest {
 
   @Mock private KafkaesqueConsumer<String, String> consumer;
   @Mock private ConsumedResults<String, String> results;
