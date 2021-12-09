@@ -3,10 +3,6 @@ package in.rcard.kafkaesque;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import in.rcard.kafkaesque.KafkaesqueProducer.Builder;
-import in.rcard.kafkaesque.KafkaesqueProducer.KafkaesqueProducerDelegate;
-import in.rcard.kafkaesque.KafkaesqueProducer.KafkaesqueProducerDelegate.DelegateCreationInfo;
-import in.rcard.kafkaesque.KafkaesqueProducer.Record;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;

@@ -1,7 +1,6 @@
 package in.rcard.kafkaesque;
 
 import in.rcard.kafkaesque.KafkaesqueProducer.Builder;
-import in.rcard.kafkaesque.KafkaesqueProducer.Record;
 import java.util.List;
 
 public class KafkaesqueInputTopic<Key, Value> {
@@ -13,7 +12,7 @@ public class KafkaesqueInputTopic<Key, Value> {
     this.producerBuilder = producerBuilder;
   }
   
-  public void pipeRecordList(List<Record<Key, Value>> records) {
+  public void pipeRecordList(List<KafkaesqueProducer.Record<Key, Value>> records) {
     producerBuilder
         .messages(records)
         .expecting()

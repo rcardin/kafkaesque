@@ -1,12 +1,20 @@
 package in.rcard.kafkaesque;
 
 import in.rcard.kafkaesque.KafkaesqueConsumer.KafkaesqueConsumerDelegate.DelegateCreationInfo;
+import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Properties;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Function;
+import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.clients.consumer.ConsumerRebalanceListener;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.clients.consumer.ConsumerRecords;
+import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.serialization.Deserializer;
 import org.awaitility.Awaitility;
 import org.awaitility.core.ConditionTimeoutException;
@@ -21,29 +29,80 @@ import org.awaitility.core.ConditionTimeoutException;
  */
 public class KafkaesqueConsumer<Key, Value> {
 
+  private final KafkaConsumer<Key, Value> kafkaConsumer;
+  
   private final long interval;
   private final TimeUnit timeUnit;
   private final int emptyPollsCount;
   private final long emptyPollsInterval;
   private final TimeUnit emptyPollsTimeUnit;
-
-  private final KafkaesqueConsumerDelegate<Key, Value> consumerDelegate;
-
+  
+  private final DelegateCreationInfo<Key, Value> creationInfo;
+  
   KafkaesqueConsumer(
+      String brokersUrl,
       long interval,
       TimeUnit timeUnit,
       int emptyPollsCount,
       long emptyPollsInterval,
       TimeUnit emptyPollsTimeUnit,
-      KafkaesqueConsumerDelegate<Key, Value> consumerDelegate) {
+      DelegateCreationInfo<Key, Value> creationInfo) {
     this.interval = interval;
     this.timeUnit = timeUnit;
     this.emptyPollsCount = emptyPollsCount;
     this.emptyPollsInterval = emptyPollsInterval;
     this.emptyPollsTimeUnit = emptyPollsTimeUnit;
-    this.consumerDelegate = consumerDelegate;
+    this.creationInfo = creationInfo;
+    this.kafkaConsumer = createKafkaConsumer(brokersUrl);
   }
-
+  
+  private KafkaConsumer<Key, Value> createKafkaConsumer(String brokersUrl) {
+    final Properties props = new Properties();
+    props.put(ConsumerConfig.GROUP_ID_CONFIG, "kafkaesque-consumer");
+    props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+    props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, brokersUrl);
+    props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "true");
+    props.put(
+        ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG,
+        creationInfo.getKeyDeserializer().getClass());
+    props.put(
+        ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG,
+        creationInfo.getValueDeserializer().getClass());
+    final KafkaConsumer<Key, Value> consumer = new KafkaConsumer<>(props);
+    subscribeConsumerToTopic(consumer, creationInfo.getTopic());
+    return consumer;
+  }
+  
+  private void subscribeConsumerToTopic(KafkaConsumer<Key, Value> consumer, String topic) {
+    CountDownLatch latch = new CountDownLatch(1);
+    consumer.subscribe(
+        List.of(topic),
+        new ConsumerRebalanceListener() {
+          @Override
+          public void onPartitionsRevoked(Collection<TopicPartition> partitions) {}
+          
+          @Override
+          public void onPartitionsAssigned(Collection<TopicPartition> partitions) {
+            latch.countDown();
+//                    System.out.println("Assigned");
+          }
+        });
+    Awaitility.await()
+        .atMost(1, TimeUnit.MINUTES)
+        .until(
+            () -> {
+              // The actual assignment of a topic to a consumer is done after a while
+              // the consumer starts to poll messages. So, we forced the consumer to poll
+              // from the topic and we wait until the consumer is assigned to the topic.
+              consumer.poll(Duration.ofMillis(100));
+              final boolean assigned = latch.getCount() == 0;
+              if (assigned) {
+                consumer.seekToBeginning(consumer.assignment());
+              }
+              return assigned;
+            });
+  }
+  
   /**
    * Polls the broker and reads the messages contained in the configured topic.
    *
@@ -82,8 +141,10 @@ public class KafkaesqueConsumer<Key, Value> {
   }
 
   private int readNewMessages(List<ConsumerRecord<Key, Value>> readMessages) {
-    final List<ConsumerRecord<Key, Value>> newMessages = consumerDelegate.poll();
-    if (newMessages != null && !newMessages.isEmpty()) {
+    final ConsumerRecords<Key, Value> polled = kafkaConsumer.poll(Duration.ofMillis(50L));
+    final List<ConsumerRecord<Key, Value>> newMessages = new ArrayList<>();
+    polled.records(creationInfo.getTopic()).forEach(newMessages::add);
+    if (!newMessages.isEmpty()) {
       readMessages.addAll(newMessages);
       return newMessages.size();
     }
@@ -94,7 +155,7 @@ public class KafkaesqueConsumer<Key, Value> {
    * Closes the consumer. After the closing operation, the consumer cannot read any more messages.
    */
   public void andCloseConsumer() {
-    consumerDelegate.close();
+    kafkaConsumer.close();
   }
 
   /**
@@ -111,6 +172,7 @@ public class KafkaesqueConsumer<Key, Value> {
    */
   public static class Builder<Key, Value> {
 
+    private final String brokerUrl;
     private String topic;
     private Deserializer<Key> keyDeserializer;
     private Deserializer<Value> valueDeserializer;
@@ -120,23 +182,21 @@ public class KafkaesqueConsumer<Key, Value> {
     private long emptyPollsInterval = 50L;
     private TimeUnit emptyPollsTimeUnit = TimeUnit.MILLISECONDS;
   
-  
-    private final Function<
-            DelegateCreationInfo<Key, Value>, ? extends KafkaesqueConsumerDelegate<Key, Value>>
-        consumerDelegateFunction;
-  
-    private Builder(
-        Function<DelegateCreationInfo<Key, Value>, ? extends KafkaesqueConsumerDelegate<Key, Value>>
-            consumerDelegateFunction) {
-      this.consumerDelegateFunction = consumerDelegateFunction;
+    private Builder(String brokerUrl) {
+      this.brokerUrl = brokerUrl;
     }
-
-    static <Key, Value> Builder<Key, Value> newInstance(
-        Function<DelegateCreationInfo<Key, Value>, ? extends KafkaesqueConsumerDelegate<Key, Value>>
-            consumerDelegateFunction) {
-      return new Builder<>(consumerDelegateFunction);
+  
+    static <Key, Value> Builder<Key, Value> newInstance(String brokerUrl) {
+      validateBrokerUrl(brokerUrl);
+      return new Builder<>(brokerUrl);
     }
-
+  
+    private static void validateBrokerUrl(String brokerUrl) {
+      if (brokerUrl == null || brokerUrl.isEmpty()) {
+        throw new IllegalArgumentException("The broker url cannot be empty");
+      }
+    }
+  
     /**
      * Sets the topic to read from. This information is mandatory.
      *
@@ -204,22 +264,19 @@ public class KafkaesqueConsumer<Key, Value> {
       final DelegateCreationInfo<Key, Value> creationInfo =
           new DelegateCreationInfo<>(topic, keyDeserializer, valueDeserializer);
       final KafkaesqueConsumer<Key, Value> consumer = new KafkaesqueConsumer<>(
-          interval, timeUnit, emptyPollsCount, emptyPollsInterval, emptyPollsTimeUnit,
-          consumerDelegateFunction.apply(creationInfo));
+          brokerUrl,
+          interval,
+          timeUnit,
+          emptyPollsCount,
+          emptyPollsInterval,
+          emptyPollsTimeUnit,
+          creationInfo);
       return consumer.poll();
     }
 
     private void validateInputs() {
-      validateConsumerDelegateFunction();
       validateTopic();
       validateDeserializers();
-    }
-
-    private void validateConsumerDelegateFunction() {
-      if (consumerDelegateFunction == null) {
-        throw new IllegalArgumentException(
-            "The function creating the consumer delegate cannot be null");
-      }
     }
 
     private void validateTopic() {

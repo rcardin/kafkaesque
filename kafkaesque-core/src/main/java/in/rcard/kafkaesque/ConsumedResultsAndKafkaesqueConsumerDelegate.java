@@ -7,14 +7,14 @@ import org.apache.kafka.common.header.Headers;
 import org.hamcrest.Matcher;
 
 /**
- * A delegate type that allows the access to method both of the type {@link KafkaesqueConsumer}, and
+ * A delegate type that allows the access to method both of the type {@link in.rcard.kafkaesque.KafkaesqueConsumer}, and
  * the type {@link ConsumedResults}.
  *
  * @param <Key> The type of the messages' keys
  * @param <Value> The type of the messages' values
  *
  * @see ConsumedResults
- * @see KafkaesqueConsumer
+ * @see in.rcard.kafkaesque.KafkaesqueConsumer
  */
 class ConsumedResultsAndKafkaesqueConsumerDelegate<Key, Value> {
   private final ConsumedResults<Key, Value> results;

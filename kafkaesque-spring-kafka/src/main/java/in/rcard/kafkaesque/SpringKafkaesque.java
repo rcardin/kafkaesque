@@ -1,7 +1,5 @@
 package in.rcard.kafkaesque;
 
-import in.rcard.kafkaesque.KafkaesqueConsumer.Builder;
-import in.rcard.kafkaesque.KafkaesqueConsumer.KafkaesqueConsumerDelegate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;

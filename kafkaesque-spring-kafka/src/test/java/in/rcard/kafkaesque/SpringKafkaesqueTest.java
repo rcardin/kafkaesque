@@ -2,8 +2,6 @@ package in.rcard.kafkaesque;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import in.rcard.kafkaesque.KafkaesqueOutputTopic.Message;
-import in.rcard.kafkaesque.KafkaesqueProducer.Record;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;

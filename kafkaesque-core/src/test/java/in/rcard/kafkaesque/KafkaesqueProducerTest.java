@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
 
-import in.rcard.kafkaesque.KafkaesqueProducer.KafkaesqueProducerDelegate;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;

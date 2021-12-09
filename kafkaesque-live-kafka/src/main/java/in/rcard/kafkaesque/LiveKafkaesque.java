@@ -1,8 +1,5 @@
 package in.rcard.kafkaesque;
 
-import in.rcard.kafkaesque.KafkaesqueConsumer.Builder;
-import in.rcard.kafkaesque.KafkaesqueConsumer.KafkaesqueConsumerDelegate;
-import in.rcard.kafkaesque.KafkaesqueConsumer.KafkaesqueConsumerDelegate.DelegateCreationInfo;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;

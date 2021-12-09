@@ -5,10 +5,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 
-import in.rcard.kafkaesque.KafkaesqueConsumer.Builder;
-import in.rcard.kafkaesque.KafkaesqueConsumer.KafkaesqueConsumerDelegate;
-import in.rcard.kafkaesque.KafkaesqueConsumer.KafkaesqueConsumerDelegate.DelegateCreationInfo;
-import in.rcard.kafkaesque.KafkaesqueProducer.KafkaesqueProducerDelegate;
 import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
@@ -17,7 +13,6 @@ import org.apache.kafka.common.serialization.StringDeserializer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.BDDMockito;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 

@@ -4,13 +4,15 @@ import in.rcard.kafkaesque.KafkaesqueProducer.KafkaesqueProducerDelegate.Delegat
 import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
+import java.util.Properties;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.stream.Collectors;
+import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
 import org.apache.kafka.common.serialization.Serializer;
@@ -27,23 +29,39 @@ import org.awaitility.core.ConditionTimeoutException;
  */
 public final class KafkaesqueProducer<Key, Value> {
 
+  private final KafkaProducer<Key, Value> kafkaProducer;
+  private final DelegateCreationInfo<Key, Value> creationInfo;
+  
   private final Duration forEachAckDuration;
 
   private final Duration waitForConsumerDuration;
 
   private final List<ProducerRecord<Key, Value>> records;
 
-  private final KafkaesqueProducerDelegate<Key, Value> producerDelegate;
-
   KafkaesqueProducer(
+      String brokerUrl,
       List<ProducerRecord<Key, Value>> records,
-      KafkaesqueProducerDelegate<Key, Value> producerDelegate,
       Duration forEachAckDuration,
-      Duration waitForConsumerDuration) {
+      Duration waitForConsumerDuration,
+      DelegateCreationInfo<Key, Value> creationInfo) {
     this.records = records;
-    this.producerDelegate = producerDelegate;
     this.forEachAckDuration = forEachAckDuration;
     this.waitForConsumerDuration = waitForConsumerDuration;
+    this.creationInfo = creationInfo;
+    this.kafkaProducer = createKafkaProducer(brokerUrl);
+  }
+  
+  private KafkaProducer<Key,Value> createKafkaProducer(String brokerUrl) {
+    final Properties props = new Properties();
+    props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, brokerUrl);
+    props.put(ProducerConfig.ACKS_CONFIG, "all");
+    props.put(
+        ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG,
+        creationInfo.getKeySerializer().getClass());
+    props.put(
+        ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,
+        creationInfo.getValueSerializer().getClass());
+    return new KafkaProducer<>(props);
   }
   
   /**
@@ -81,7 +99,8 @@ public final class KafkaesqueProducer<Key, Value> {
 
   private void sendRecord(ProducerRecord<Key, Value> record) {
     try {
-      producerDelegate.sendRecord(record).get(forEachAckDuration.toMillis(), TimeUnit.MILLISECONDS);
+      CompletableFuture<RecordMetadata> promiseOnMetadata = sendSingleRecord(record);
+      promiseOnMetadata.get(forEachAckDuration.toMillis(), TimeUnit.MILLISECONDS);
     } catch (InterruptedException | ExecutionException | TimeoutException e) {
       throw new AssertionError(
           String.format(
@@ -90,7 +109,7 @@ public final class KafkaesqueProducer<Key, Value> {
           e);
     }
   }
-
+  
   /**
    * Asserts that some conditions hold on the whole list of sent message.<br>
    * For example:
@@ -123,7 +142,7 @@ public final class KafkaesqueProducer<Key, Value> {
   
   private void sendRecords() {
     final List<CompletableFuture<RecordMetadata>> futures =
-        records.stream().map(producerDelegate::sendRecord).collect(Collectors.toList());
+        records.stream().map(this::sendSingleRecord).collect(Collectors.toList());
     try {
       CompletableFuture.allOf(futures.toArray(CompletableFuture[]::new))
           .get(forEachAckDuration.toMillis(), TimeUnit.MILLISECONDS);
@@ -134,6 +153,21 @@ public final class KafkaesqueProducer<Key, Value> {
               records, forEachAckDuration.toMillis()),
           e);
     }
+  }
+  
+  private CompletableFuture<RecordMetadata> sendSingleRecord(
+      ProducerRecord<Key, Value> record) {
+    CompletableFuture<RecordMetadata> promiseOnMetadata = new CompletableFuture<>();
+    kafkaProducer.send(
+        record,
+        (metadata, exception) -> {
+          if (exception == null) {
+            promiseOnMetadata.complete(metadata);
+          } else {
+            promiseOnMetadata.completeExceptionally(exception);
+          }
+        });
+    return promiseOnMetadata;
   }
   
   /**
@@ -210,9 +244,8 @@ public final class KafkaesqueProducer<Key, Value> {
    * @param <Value> The type of the value of a message that the consumer can read
    */
   public static class Builder<Key, Value> {
-
-    private final Function<DelegateCreationInfo<Key, Value>, KafkaesqueProducerDelegate<Key, Value>>
-        creationInfoFunction;
+  
+    private final String brokerUrl;
     private String topic;
     private Serializer<Key> keySerializer;
     private Serializer<Value> valueSerializer;
@@ -222,20 +255,19 @@ public final class KafkaesqueProducer<Key, Value> {
     private long waitingForTheConsumerAtMostInterval = 500L;
     private TimeUnit waitingForTheConsumerAtMostTimeUnit = TimeUnit.MILLISECONDS;
 
-    Builder(
-        Function<
-                KafkaesqueProducerDelegate.DelegateCreationInfo<Key, Value>,
-                KafkaesqueProducerDelegate<Key, Value>>
-            creationInfoFunction) {
-      this.creationInfoFunction = creationInfoFunction;
+    private Builder(String brokerUrl) {
+      validateBrokerUrl(brokerUrl);
+      this.brokerUrl = brokerUrl;
     }
-
-    static <Key, Value> Builder<Key, Value> newInstance(
-        Function<
-                KafkaesqueProducerDelegate.DelegateCreationInfo<Key, Value>,
-                KafkaesqueProducerDelegate<Key, Value>>
-            creationInfoFunction) {
-      return new Builder<>(creationInfoFunction);
+  
+    private void validateBrokerUrl(String brokerUrl) {
+      if (brokerUrl == null || brokerUrl.isEmpty()) {
+        throw new IllegalArgumentException("The brokerUrl cannot be empty");
+      }
+    }
+  
+    static <Key, Value> Builder<Key, Value> newInstance(String brokerUrl) {
+      return new Builder<>(brokerUrl);
     }
   
     /**
@@ -302,17 +334,17 @@ public final class KafkaesqueProducer<Key, Value> {
      */
     public KafkaesqueProducer<Key, Value> expecting() {
       validateInputs();
-      final KafkaesqueProducerDelegate<Key, Value> producerDelegate =
-          creationInfoFunction.apply(
-              new DelegateCreationInfo<>(topic, keySerializer, valueSerializer));
+      final DelegateCreationInfo<Key, Value> creationInfo = new DelegateCreationInfo<>(
+          topic, keySerializer, valueSerializer);
       return new KafkaesqueProducer<>(
+          brokerUrl,
           createProducerRecords(),
-          producerDelegate,
           Duration.of(
               waitingAtMostForEachAckInterval, waitingAtMostForEachAckTimeUnit.toChronoUnit()),
           Duration.of(
               waitingForTheConsumerAtMostInterval,
-              waitingForTheConsumerAtMostTimeUnit.toChronoUnit()));
+              waitingForTheConsumerAtMostTimeUnit.toChronoUnit()),
+          creationInfo);
     }
   
     private List<ProducerRecord<Key, Value>> createProducerRecords() {
@@ -323,19 +355,11 @@ public final class KafkaesqueProducer<Key, Value> {
     }
   
     private void validateInputs() {
-      validateProducerDelegateFunction();
       validateTopic();
       validateRecords();
       validateSerializers();
     }
-
-    private void validateProducerDelegateFunction() {
-      if (creationInfoFunction == null) {
-        throw new IllegalArgumentException(
-            "The function creating the producer delegate cannot be null");
-      }
-    }
-
+    
     private void validateTopic() {
       if (topic == null || topic.isBlank()) {
         throw new IllegalArgumentException("The topic name cannot be empty");
