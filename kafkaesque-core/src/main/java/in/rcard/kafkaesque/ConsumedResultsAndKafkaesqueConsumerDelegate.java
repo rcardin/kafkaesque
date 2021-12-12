@@ -16,7 +16,7 @@ import org.hamcrest.Matcher;
  * @see ConsumedResults
  * @see in.rcard.kafkaesque.KafkaesqueConsumer
  */
-class ConsumedResultsAndKafkaesqueConsumerDelegate<Key, Value> {
+public class ConsumedResultsAndKafkaesqueConsumerDelegate<Key, Value> {
   private final ConsumedResults<Key, Value> results;
   private final KafkaesqueConsumer<Key, Value> consumer;
 

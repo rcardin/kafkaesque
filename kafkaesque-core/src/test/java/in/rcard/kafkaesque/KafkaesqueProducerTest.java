@@ -23,7 +23,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class KafkaesqueProducerTest {
-  @Mock private KafkaesqueProducerDelegate<String, String> producerDelegate;
 
   @Mock private ProducerRecord<String, String> record;
   private final RecordMetadata metadata =
@@ -35,8 +34,8 @@ class KafkaesqueProducerTest {
   void setUp() {
     producer =
         new KafkaesqueProducer<>(
+            "broker",
             Arrays.asList(record, record),
-            producerDelegate,
             Duration.of(200L, ChronoUnit.MILLIS),
             Duration.of(500L, ChronoUnit.MILLIS));
   }

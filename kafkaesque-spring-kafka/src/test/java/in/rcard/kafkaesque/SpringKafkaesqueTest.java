@@ -2,6 +2,8 @@ package in.rcard.kafkaesque;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import in.rcard.kafkaesque.yolo.InputTopic;
+import in.rcard.kafkaesque.yolo.OutputTopic;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -107,7 +109,7 @@ class SpringKafkaesqueTest {
 
   @Test
   void createInputTopicShouldCreateAStructureThatSendToTheBrokerTheRecords() {
-    final KafkaesqueInputTopic<Integer, String> inputTopic =
+    final InputTopic<Integer, String> inputTopic =
         new SpringKafkaesque(broker)
             .createInputTopic(PRODUCER_TEST_TOPIC_1, new IntegerSerializer(), new StringSerializer());
     inputTopic.pipeRecordList(
@@ -128,7 +130,7 @@ class SpringKafkaesqueTest {
   void createOutputTopicShouldCreateAStructureTheReadsFromTheBrokerTheMessages() {
     kafkaTemplate.send(CONSUMER_TEST_TOPIC_1, 300, "Three hundred");
     kafkaTemplate.send(CONSUMER_TEST_TOPIC_1, 400, "Four hundred");
-    final KafkaesqueOutputTopic<Integer, String> outputTopic =
+    final OutputTopic<Integer, String> outputTopic =
         new SpringKafkaesque(broker)
             .createOutputTopic(
                 CONSUMER_TEST_TOPIC_1, new IntegerDeserializer(), new StringDeserializer());
