@@ -1,5 +1,7 @@
 package in.rcard.kafkaesque;
 
+import in.rcard.kafkaesque.producer.KafkaesqueProducerDSL;
+
 public final class Kafkaesque {
   
   private final String brokersUrl;
@@ -23,7 +25,7 @@ public final class Kafkaesque {
     return KafkaesqueConsumer.Builder.newInstance(brokersUrl);
   }
 
-  public <Key, Value> KafkaesqueProducer.Builder<Key, Value> produce() {
-    return KafkaesqueProducer.Builder.newInstance(brokersUrl);
+  public <Key, Value> KafkaesqueProducerDSL<Key, Value> produce() {
+    return KafkaesqueProducerDSL.newInstance(brokersUrl);
   }
 }

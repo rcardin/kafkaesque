@@ -1,15 +1,15 @@
 package in.rcard.kafkaesque.yolo;
 
-import in.rcard.kafkaesque.KafkaesqueProducer.Builder;
-import in.rcard.kafkaesque.KafkaesqueProducer.Record;
+import in.rcard.kafkaesque.producer.KafkaesqueProducerDSL;
+import in.rcard.kafkaesque.producer.KafkaesqueProducer.Record;
 import java.util.List;
 
 public class InputTopic<Key, Value> {
 
-  private final Builder<Key, Value> producerBuilder;
+  private final KafkaesqueProducerDSL<Key, Value> producerBuilder;
   
   InputTopic(
-      Builder<Key, Value> producerBuilder) {
+      KafkaesqueProducerDSL<Key, Value> producerBuilder) {
     this.producerBuilder = producerBuilder;
   }
   
