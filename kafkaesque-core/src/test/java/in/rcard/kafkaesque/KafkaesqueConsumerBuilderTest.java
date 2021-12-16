@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 
+import in.rcard.kafkaesque.consumer.AssertionsOnConsumedDelegate;
 import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
@@ -105,7 +106,7 @@ class KafkaesqueConsumerBuilderTest {
     given(delegate.poll())
         .willReturn(Collections.singletonList(record))
         .willReturn(Collections.emptyList());
-    final ConsumedResultsAndKafkaesqueConsumerDelegate<String, String> consumer =
+    final AssertionsOnConsumedDelegate<String, String> consumer =
         builder
             .withDeserializers(new StringDeserializer(), new StringDeserializer())
             .fromTopic("topic")

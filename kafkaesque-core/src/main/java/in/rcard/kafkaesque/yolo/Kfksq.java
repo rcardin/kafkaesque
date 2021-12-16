@@ -1,7 +1,7 @@
 package in.rcard.kafkaesque.yolo;
 
 import in.rcard.kafkaesque.Kafkaesque;
-import in.rcard.kafkaesque.KafkaesqueConsumer;
+import in.rcard.kafkaesque.consumer.KafkaesqueConsumerDSL;
 import in.rcard.kafkaesque.producer.KafkaesqueProducerDSL;
 import java.util.concurrent.TimeUnit;
 import org.apache.kafka.common.serialization.Deserializer;
@@ -30,7 +30,7 @@ public final class Kfksq {
   
   public <Key, Value> OutputTopic<Key, Value> createOutputTopic(
       String topic, Deserializer<Key> keyDeserializer, Deserializer<Value> valueDeserializer) {
-    final KafkaesqueConsumer.Builder<Key, Value> builder =
+    final KafkaesqueConsumerDSL<Key, Value> builder =
         kafkaesque.<Key, Value>consume()
             .fromTopic(topic)
             .withDeserializers(keyDeserializer, valueDeserializer)

@@ -1,4 +1,4 @@
-package in.rcard.kafkaesque;
+package in.rcard.kafkaesque.consumer;
 
 import java.util.List;
 import java.util.Objects;
@@ -16,14 +16,14 @@ import org.hamcrest.StringDescription;
  * @param <Key> The type of the messages' keys
  * @param <Value> The type of the messages' values
  */
-public class ConsumedResults<Key, Value> {
+public class AssertionsOnConsumed<Key, Value> {
 
   private final List<ConsumerRecord<Key, Value>> consumerRecords;
   private final List<Headers> headersList;
   private final List<Key> keysList;
   private final List<Value> valuesList;
 
-  ConsumedResults(List<ConsumerRecord<Key, Value>> consumerRecords) {
+  AssertionsOnConsumed(List<ConsumerRecord<Key, Value>> consumerRecords) {
     this.consumerRecords = consumerRecords;
     this.headersList =
         consumerRecords.stream().map(ConsumerRecord::headers).collect(Collectors.toList());
@@ -37,7 +37,7 @@ public class ConsumedResults<Key, Value> {
    *
    * @param size The expected number of messages
    */
-  public ConsumedResults<Key, Value> havingRecordsSize(long size) {
+  public AssertionsOnConsumed<Key, Value> havingRecordsSize(long size) {
     if (consumerRecords.size() != size) {
       throw new AssertionError(
           String.format(
@@ -54,7 +54,7 @@ public class ConsumedResults<Key, Value> {
    *
    * @param headersConsumer Code testing the desired properties
    */
-  public ConsumedResults<Key, Value> havingHeaders(Consumer<List<Headers>> headersConsumer) {
+  public AssertionsOnConsumed<Key, Value> havingHeaders(Consumer<List<Headers>> headersConsumer) {
     headersConsumer.accept(headersList);
     return this;
   }
@@ -65,7 +65,7 @@ public class ConsumedResults<Key, Value> {
    *
    * @param keysConsumer Code testing the desired properties
    */
-  public ConsumedResults<Key, Value> havingKeys(Consumer<List<Key>> keysConsumer) {
+  public AssertionsOnConsumed<Key, Value> havingKeys(Consumer<List<Key>> keysConsumer) {
     keysConsumer.accept(keysList);
     return this;
   }
@@ -76,7 +76,7 @@ public class ConsumedResults<Key, Value> {
    *
    * @param valuesConsumer Code testing the desired properties
    */
-  public ConsumedResults<Key, Value> havingPayloads(Consumer<List<Value>> valuesConsumer) {
+  public AssertionsOnConsumed<Key, Value> havingPayloads(Consumer<List<Value>> valuesConsumer) {
     valuesConsumer.accept(valuesList);
     return this;
   }
@@ -87,7 +87,7 @@ public class ConsumedResults<Key, Value> {
    *
    * @param recordsConsumer Code testing the desired properties
    */
-  public ConsumedResults<Key, Value> havingConsumerRecords(
+  public AssertionsOnConsumed<Key, Value> havingConsumerRecords(
       Consumer<List<ConsumerRecord<Key, Value>>> recordsConsumer) {
     recordsConsumer.accept(consumerRecords);
     return this;
@@ -98,7 +98,7 @@ public class ConsumedResults<Key, Value> {
    *
    * @param matcher Condition to satisfy
    */
-  public ConsumedResults<Key, Value> assertingThatPayloads(Matcher<? super List<Value>> matcher) {
+  public AssertionsOnConsumed<Key, Value> assertingThatPayloads(Matcher<? super List<Value>> matcher) {
     final boolean matched = matcher.matches(valuesList);
     if (!matched) {
       throw new AssertionError(getMismatchMessage(valuesList, matcher));
@@ -124,7 +124,7 @@ public class ConsumedResults<Key, Value> {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    ConsumedResults<?, ?> that = (ConsumedResults<?, ?>) o;
+    AssertionsOnConsumed<?, ?> that = (AssertionsOnConsumed<?, ?>) o;
     return Objects.equals(consumerRecords, that.consumerRecords) &&
                Objects.equals(headersList, that.headersList) &&
                Objects.equals(keysList, that.keysList) &&

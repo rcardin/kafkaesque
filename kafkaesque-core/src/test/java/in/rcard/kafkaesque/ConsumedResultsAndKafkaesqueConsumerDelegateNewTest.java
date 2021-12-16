@@ -4,6 +4,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+import in.rcard.kafkaesque.consumer.AssertionsOnConsumedDelegate;
+import in.rcard.kafkaesque.consumer.AssertionsOnConsumed;
+import in.rcard.kafkaesque.consumer.KafkaesqueConsumer;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
@@ -21,8 +24,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class ConsumedResultsAndKafkaesqueConsumerDelegateNewTest {
 
   @Mock private KafkaesqueConsumer<String, String> consumer;
-  @Mock private ConsumedResults<String, String> results;
-  @InjectMocks private ConsumedResultsAndKafkaesqueConsumerDelegate<String, String> delegate;
+  @Mock private AssertionsOnConsumed<String, String> results;
+  @InjectMocks private AssertionsOnConsumedDelegate<String, String> delegate;
 
   @Test
   void andCloseConsumerShouldCallTheSameMethodOnTheConsumer() {

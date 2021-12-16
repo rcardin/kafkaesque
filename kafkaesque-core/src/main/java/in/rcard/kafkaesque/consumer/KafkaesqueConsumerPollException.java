@@ -1,4 +1,4 @@
-package in.rcard.kafkaesque;
+package in.rcard.kafkaesque.consumer;
 
 /**
  * Represents an exception thrown during the poll phase of a consumer

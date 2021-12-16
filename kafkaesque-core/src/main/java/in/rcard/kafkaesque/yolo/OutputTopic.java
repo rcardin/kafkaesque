@@ -1,6 +1,6 @@
 package in.rcard.kafkaesque.yolo;
 
-import in.rcard.kafkaesque.KafkaesqueConsumer.Builder;
+import in.rcard.kafkaesque.consumer.KafkaesqueConsumerDSL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -8,10 +8,10 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 
 public class OutputTopic<Key, Value> {
 
-  private final Builder<Key, Value> consumerBuilder;
+  private final KafkaesqueConsumerDSL<Key, Value> consumerBuilder;
   
   OutputTopic(
-      Builder<Key, Value> consumerBuilder) {
+      KafkaesqueConsumerDSL<Key, Value> consumerBuilder) {
     this.consumerBuilder = consumerBuilder;
   }
   

@@ -5,11 +5,7 @@ import in.rcard.kafkaesque.producer.KafkaesqueProducer.Record;
 import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
-import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.Serializer;
-import org.awaitility.Awaitility;
-import org.awaitility.core.ConditionTimeoutException;
 
 /**
  * Creates instances of {@link KafkaesqueProducer}.<br>
@@ -46,7 +42,7 @@ public class KafkaesqueProducerDSL<Key, Value> {
     }
   }
 
-  static <Key, Value> KafkaesqueProducerDSL<Key, Value> newInstance(String brokerUrl) {
+  public static <Key, Value> KafkaesqueProducerDSL<Key, Value> newInstance(String brokerUrl) {
     return new KafkaesqueProducerDSL<>(brokerUrl);
   }
 
@@ -169,102 +165,5 @@ public class KafkaesqueProducerDSL<Key, Value> {
       throw new IllegalArgumentException("The serializers cannot be null");
     }
   }
-
-  static class AfterAllAssertions<Key, Value> {
-
-    private final KafkaesqueProducer<Key, Value> producer;
-    private final List<Record<Key, Value>> records;
-    private final Duration waitForConsumerDuration;
-
-    AfterAllAssertions(
-        KafkaesqueProducer<Key, Value> producer,
-        List<Record<Key, Value>> records,
-        Duration waitForConsumerDuration) {
-      this.producer = producer;
-      this.records = records;
-      this.waitForConsumerDuration = waitForConsumerDuration;
-    }
-
-    /**
-     * Asserts that some conditions hold on the whole list of sent message.<br>
-     * For example:
-     *
-     * <pre>
-     *   producer.asserting(records ->
-     *     assertThat(records).hasSize(2)
-     *   );
-     * </pre>
-     *
-     * @param messagesConsumer The conditions that must hold on the whole list of messages
-     */
-    void asserting(Consumer<List<ProducerRecord<Key, Value>>> messagesConsumer) {
-      final List<ProducerRecord<Key, Value>> producerRecords = producer.sendRecords(records);
-      consume(messagesConsumer, producerRecords);
-    }
-
-    private void consume(
-        Consumer<List<ProducerRecord<Key, Value>>> messagesConsumer,
-        List<ProducerRecord<Key, Value>> records) {
-      try {
-        Awaitility.await()
-            .atMost(waitForConsumerDuration)
-            .untilAsserted(() -> messagesConsumer.accept(records));
-      } catch (ConditionTimeoutException ex) {
-        throw new AssertionError(
-            String.format(
-                "The consuming of the list of messages %s takes more than %d milliseconds",
-                records, waitForConsumerDuration.toMillis()));
-      }
-    }
-  }
-
-  static class AfterEachAssertions<Key, Value> {
-
-    private final KafkaesqueProducer<Key, Value> producer;
-    private final List<Record<Key, Value>> records;
-    private final Duration waitForConsumerDuration;
-
-    AfterEachAssertions(
-        KafkaesqueProducer<Key, Value> producer,
-        List<Record<Key, Value>> records,
-        Duration waitForConsumerDuration) {
-      this.producer = producer;
-      this.records = records;
-      this.waitForConsumerDuration = waitForConsumerDuration;
-    }
-
-    /**
-     * Asserts that some conditions hold on a single sent message.<br>
-     * For example:
-     *
-     * <pre>
-     *   producer.asserting(pr ->
-     *     assertThat(pr.key()).isEqualTo("key")
-     *   );
-     * </pre>
-     *
-     * @param messageConsumer The conditions that must hold on a message
-     */
-    void asserting(Consumer<ProducerRecord<Key, Value>> messageConsumer) {
-      records.forEach(
-          record -> {
-            final ProducerRecord<Key, Value> producerRecord = producer.sendRecord(record);
-            consume(messageConsumer, producerRecord);
-          });
-    }
-
-    private void consume(
-        Consumer<ProducerRecord<Key, Value>> messageConsumer, ProducerRecord<Key, Value> record) {
-      try {
-        Awaitility.await()
-            .atMost(waitForConsumerDuration)
-            .untilAsserted(() -> messageConsumer.accept(record));
-      } catch (ConditionTimeoutException ex) {
-        throw new AssertionError(
-            String.format(
-                "The consuming of the message %s takes more than %d milliseconds",
-                record, waitForConsumerDuration.toMillis()));
-      }
-    }
-  }
+  
 }

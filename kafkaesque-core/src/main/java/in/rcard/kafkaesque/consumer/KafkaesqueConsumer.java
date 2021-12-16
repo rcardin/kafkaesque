@@ -1,6 +1,6 @@
-package in.rcard.kafkaesque;
+package in.rcard.kafkaesque.consumer;
 
-import in.rcard.kafkaesque.KafkaesqueConsumer.KafkaesqueConsumerDelegate.DelegateCreationInfo;
+import in.rcard.kafkaesque.consumer.KafkaesqueConsumer.KafkaesqueConsumerDelegate.DelegateCreationInfo;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -25,7 +25,7 @@ import org.awaitility.core.ConditionTimeoutException;
  *
  * @param <Key> Type of the key of a message
  * @param <Value> Type of the value of a message
- * @see Builder
+ * @see KafkaesqueConsumerDSL
  */
 public class KafkaesqueConsumer<Key, Value> {
 
@@ -108,7 +108,7 @@ public class KafkaesqueConsumer<Key, Value> {
    *
    * @return The read messages
    */
-  ConsumedResultsAndKafkaesqueConsumerDelegate<Key, Value> poll() {
+  AssertionsOnConsumedDelegate<Key, Value> poll() {
     try {
       final AtomicInteger emptyCycles = new AtomicInteger(emptyPollsCount);
       final List<ConsumerRecord<Key, Value>> readMessages = new ArrayList<>();
@@ -126,8 +126,8 @@ public class KafkaesqueConsumer<Key, Value> {
                 }
                 return false;
               });
-      return new ConsumedResultsAndKafkaesqueConsumerDelegate<>(
-          new ConsumedResults<>(readMessages),
+      return new AssertionsOnConsumedDelegate<>(
+          new AssertionsOnConsumed<>(readMessages),
           this
       );
     } catch (ConditionTimeoutException ctex) {
@@ -157,141 +157,7 @@ public class KafkaesqueConsumer<Key, Value> {
   public void andCloseConsumer() {
     kafkaConsumer.close();
   }
-
-  /**
-   * Creates instances of {@link KafkaesqueConsumer}.<br/>
-   * There are defaults for some properties. In details, we have the following:
-   *
-   * <ol>
-   *   <li>{@code waitingAtMost(200L, TimeUnit.MILLISECONDS)}</li>
-   *   <li>{@code waitingEmptyPolls(2, 50L, TimeUnit.MILLISECONDS)}</li>
-   * </ol>
-   *
-   * @param <Key> The type of the key of a message that the consumer can read
-   * @param <Value> The type of the value of a message that the consumer can read
-   */
-  public static class Builder<Key, Value> {
-
-    private final String brokerUrl;
-    private String topic;
-    private Deserializer<Key> keyDeserializer;
-    private Deserializer<Value> valueDeserializer;
-    private long interval = 60;
-    private TimeUnit timeUnit = TimeUnit.SECONDS;
-    private int emptyPollsCount = 2;
-    private long emptyPollsInterval = 50L;
-    private TimeUnit emptyPollsTimeUnit = TimeUnit.MILLISECONDS;
   
-    private Builder(String brokerUrl) {
-      this.brokerUrl = brokerUrl;
-    }
-  
-    static <Key, Value> Builder<Key, Value> newInstance(String brokerUrl) {
-      validateBrokerUrl(brokerUrl);
-      return new Builder<>(brokerUrl);
-    }
-  
-    private static void validateBrokerUrl(String brokerUrl) {
-      if (brokerUrl == null || brokerUrl.isEmpty()) {
-        throw new IllegalArgumentException("The broker url cannot be empty");
-      }
-    }
-  
-    /**
-     * Sets the topic to read from. This information is mandatory.
-     *
-     * @param topic The topic name
-     */
-    public Builder<Key, Value> fromTopic(String topic) {
-      this.topic = topic;
-      return this;
-    }
-
-    /**
-     * Sets the key and value deserializers. This information is mandatory.
-     *
-     * @param keyDeserializer The key deserializer
-     * @param valueDeserializer The value deserializer
-     */
-    public Builder<Key, Value> withDeserializers(
-        Deserializer<Key> keyDeserializer, Deserializer<Value> valueDeserializer) {
-      this.keyDeserializer = keyDeserializer;
-      this.valueDeserializer = valueDeserializer;
-      return this;
-    }
-
-    /**
-     * Sets the time interval to wait until the receipt of all the produced messages. This
-     * information is optional. The default values are {@code 200L} and
-     * {@code TimeUnit.MILLISECOND}.
-     *
-     * @param interval Time interval
-     * @param unit Unit of the time interval
-     */
-    public Builder<Key, Value> waitingAtMost(long interval, TimeUnit unit) {
-      this.interval = interval;
-      this.timeUnit = unit;
-      return this;
-    }
-
-    /**
-     * Sets the number of times a poll should return an empty list of messages to consider the read
-     * phase concluded. This information is optional. The default values are {@code 2}, {@code 50L},
-     * and {@code TimeUnit.MILLISECONDS}.
-     *
-     * @param count Number of empty polls
-     * @param waitingInterval The interval to wait between two poll operations
-     * @param waitingTimeUnit The time unit of the above interval
-     */
-    public Builder<Key, Value> waitingEmptyPolls(
-        int count, long waitingInterval, TimeUnit waitingTimeUnit) {
-      this.emptyPollsCount = count;
-      this.emptyPollsInterval = waitingInterval;
-      this.emptyPollsTimeUnit = waitingTimeUnit;
-      return this;
-    }
-
-    /**
-     * Creates an instance of the {@link KafkaesqueConsumer} and polls for messages. Before the
-     * creation, it performs a set of validation steps.
-     *
-     * @return An instance of polled messages
-     * @see ConsumedResultsAndKafkaesqueConsumerDelegate
-     * @see ConsumedResults
-     */
-    public ConsumedResultsAndKafkaesqueConsumerDelegate<Key, Value> expecting() {
-      validateInputs();
-      final DelegateCreationInfo<Key, Value> creationInfo =
-          new DelegateCreationInfo<>(topic, keyDeserializer, valueDeserializer);
-      final KafkaesqueConsumer<Key, Value> consumer = new KafkaesqueConsumer<>(
-          brokerUrl,
-          interval,
-          timeUnit,
-          emptyPollsCount,
-          emptyPollsInterval,
-          emptyPollsTimeUnit,
-          creationInfo);
-      return consumer.poll();
-    }
-
-    private void validateInputs() {
-      validateTopic();
-      validateDeserializers();
-    }
-
-    private void validateTopic() {
-      if (topic == null || topic.isBlank()) {
-        throw new IllegalArgumentException("The topic name cannot be empty");
-      }
-    }
-
-    private void validateDeserializers() {
-      if (keyDeserializer == null || valueDeserializer == null) {
-        throw new IllegalArgumentException("The deserializers cannot be null");
-      }
-    }
-  }
-
   /**
    * Represents the concrete Kafka consumer that uses a specific technology or library as
    * implementation (e.g. <a href="https://spring.io/projects/spring-kafka" target="_blank">Spring
@@ -332,7 +198,7 @@ public class KafkaesqueConsumer<Key, Value> {
       private final Deserializer<Key> keyDeserializer;
       private final Deserializer<Value> valueDeserializer;
 
-      private DelegateCreationInfo(
+      DelegateCreationInfo(
           String topic, Deserializer<Key> keyDeserializer, Deserializer<Value> valueDeserializer) {
         this.topic = topic;
         this.keyDeserializer = keyDeserializer;

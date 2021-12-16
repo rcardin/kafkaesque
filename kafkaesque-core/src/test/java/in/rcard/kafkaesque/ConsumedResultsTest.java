@@ -6,6 +6,7 @@ import static org.hamcrest.Matchers.contains;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 
+import in.rcard.kafkaesque.consumer.AssertionsOnConsumed;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -24,22 +25,22 @@ class ConsumedResultsTest {
   @Mock private ConsumerRecord<String, String> record;
 
   private List<ConsumerRecord<String, String>> records;
-  private ConsumedResults<String, String> consumedResults;
+  private AssertionsOnConsumed<String, String> assertionsOnConsumed;
 
   @BeforeEach
   void setUp() {
     this.records = Collections.singletonList(record);
-    this.consumedResults = new ConsumedResults<>(records);
+    this.assertionsOnConsumed = new AssertionsOnConsumed<>(records);
   }
 
   @Test
   void havingRecordsSizeShouldReturnTheCurrentObjectIfTheGivenSizeIsTheSizeOfTheInternalList() {
-    assertThat(consumedResults.havingRecordsSize(1)).isEqualTo(consumedResults);
+    assertThat(assertionsOnConsumed.havingRecordsSize(1)).isEqualTo(assertionsOnConsumed);
   }
 
   @Test
   void havingRecordsSizeShouldThrownAnAssertionErrorIfTheSizeOfTheInternalListIsNotAsExpected() {
-    assertThatThrownBy(() -> consumedResults.havingRecordsSize(2))
+    assertThatThrownBy(() -> assertionsOnConsumed.havingRecordsSize(2))
         .isInstanceOf(AssertionError.class)
         .hasMessage(
             "The desired size of consumed messages 2 is not equal to the effective "
@@ -54,8 +55,8 @@ class ConsumedResultsTest {
     given(correlationIdHeader.value()).willReturn(correlationIdBytes);
     given(headers.lastHeader("CORRELATION_ID")).willReturn(correlationIdHeader);
     given(record.headers()).willReturn(headers);
-    final ConsumedResults<String, String> consumerResultsWithHeaders =
-        new ConsumedResults<>(records);
+    final AssertionsOnConsumed<String, String> consumerResultsWithHeaders =
+        new AssertionsOnConsumed<>(records);
     assertThat(
             consumerResultsWithHeaders.havingHeaders(
                 headersList -> {
@@ -72,14 +73,14 @@ class ConsumedResultsTest {
   @Test
   void havingHeadersShouldThrownAnAssertionErrorIfTheAssertionBlockIsNotSatisfied() {
     assertThatThrownBy(
-            () -> consumedResults.havingHeaders(headers -> assertThat(headers).hasSize(2)))
+            () -> assertionsOnConsumed.havingHeaders(headers -> assertThat(headers).hasSize(2)))
         .isInstanceOf(AssertionError.class);
   }
 
   @Test
   void havingKeysShouldReturnTheCurrentObjectIfTheAssertionBlockVerifiesCorrectly() {
     given(record.key()).willReturn("key");
-    final ConsumedResults<String, String> consumedResultsWithAKey = new ConsumedResults<>(records);
+    final AssertionsOnConsumed<String, String> consumedResultsWithAKey = new AssertionsOnConsumed<>(records);
     assertThat(
             consumedResultsWithAKey.havingKeys(
                 keys -> {
@@ -92,15 +93,15 @@ class ConsumedResultsTest {
 
   @Test
   void havingKeysShouldThrownAnAssertionErrorIfTheAssertionBlockIsNotSatisfied() {
-    assertThatThrownBy(() -> consumedResults.havingKeys(keys -> assertThat(keys).hasSize(2)))
+    assertThatThrownBy(() -> assertionsOnConsumed.havingKeys(keys -> assertThat(keys).hasSize(2)))
         .isInstanceOf(AssertionError.class);
   }
 
   @Test
   void havingPayloadsShouldReturnTheCurrentObjectIfTheAssertionBlockVerifiesCorrectly() {
     given(record.value()).willReturn("42");
-    final ConsumedResults<String, String> consumedResultsWithAValue =
-        new ConsumedResults<>(records);
+    final AssertionsOnConsumed<String, String> consumedResultsWithAValue =
+        new AssertionsOnConsumed<>(records);
     assertThat(
             consumedResultsWithAValue.havingPayloads(
                 payloads -> {
@@ -114,15 +115,15 @@ class ConsumedResultsTest {
   @Test
   void havingPayloadsShouldThrownAnAssertionErrorIfTheAssertionBlockIsNotSatisfied() {
     assertThatThrownBy(
-            () -> consumedResults.havingPayloads(payloads -> assertThat(payloads).hasSize(2)))
+            () -> assertionsOnConsumed.havingPayloads(payloads -> assertThat(payloads).hasSize(2)))
         .isInstanceOf(AssertionError.class);
   }
 
   @Test
   void havingConsumerRecordsShouldReturnTheCurrentObjectIfTheAssertionBlockVerifiesCorrectly() {
     given(record.value()).willReturn("42");
-    final ConsumedResults<String, String> consumedResultsWithAValue =
-        new ConsumedResults<>(records);
+    final AssertionsOnConsumed<String, String> consumedResultsWithAValue =
+        new AssertionsOnConsumed<>(records);
     assertThat(
             consumedResultsWithAValue.havingConsumerRecords(
                 consumerRecords -> {
@@ -137,7 +138,7 @@ class ConsumedResultsTest {
   void havingConsumerRecordsShouldThrownAnAssertionErrorIfTheAssertionBlockIsNotSatisfied() {
     assertThatThrownBy(
             () ->
-                consumedResults.havingConsumerRecords(
+                assertionsOnConsumed.havingConsumerRecords(
                     consumerRecords -> assertThat(consumerRecords).hasSize(2)))
         .isInstanceOf(AssertionError.class);
   }
@@ -145,8 +146,8 @@ class ConsumedResultsTest {
   @Test
   void assertingThatPayloadsShouldReturnTheCurrentObjectIfTheAssertionBlockVerifiesCorrectly() {
     given(record.value()).willReturn("42");
-    final ConsumedResults<String, String> consumedResultsWithAValue =
-        new ConsumedResults<>(records);
+    final AssertionsOnConsumed<String, String> consumedResultsWithAValue =
+        new AssertionsOnConsumed<>(records);
     assertThat(consumedResultsWithAValue.assertingThatPayloads(contains("42")))
         .isEqualTo(consumedResultsWithAValue);
   }
@@ -154,8 +155,8 @@ class ConsumedResultsTest {
   @Test
   void assertingThatPayloadsShouldThrownAnAssertionErrorIfTheAssertionBlockIsNotSatisfied() {
     given(record.value()).willReturn("42");
-    final ConsumedResults<String, String> consumedResultsWithAValue =
-        new ConsumedResults<>(records);
+    final AssertionsOnConsumed<String, String> consumedResultsWithAValue =
+        new AssertionsOnConsumed<>(records);
     assertThatThrownBy(() -> consumedResultsWithAValue.assertingThatPayloads(contains("41")))
         .isInstanceOf(AssertionError.class)
         .hasMessage("Expected iterable containing [\"41\"] but item 0: was \"42\"");

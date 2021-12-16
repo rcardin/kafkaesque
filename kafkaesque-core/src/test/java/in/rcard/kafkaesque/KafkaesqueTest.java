@@ -3,6 +3,7 @@ package in.rcard.kafkaesque;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import in.rcard.kafkaesque.consumer.KafkaesqueConsumerDSL;
 import in.rcard.kafkaesque.producer.KafkaesqueProducerDSL;
 import org.junit.jupiter.api.Test;
 
@@ -31,7 +32,7 @@ class KafkaesqueTest {
   @Test
   void consumeShouldReturnAnInstanceOfAKafkaesqueConsumerBuilder() {
     final Kafkaesque kafkaesque = Kafkaesque.at("broker");
-    final KafkaesqueConsumer.Builder<String, String> consumer = kafkaesque.consume();
+    final KafkaesqueConsumerDSL<String, String> consumer = kafkaesque.consume();
     assertThat(consumer).isNotNull();
   }
 
