@@ -1,6 +1,6 @@
 package in.rcard.kafkaesque.consumer;
 
-import in.rcard.kafkaesque.consumer.KafkaesqueConsumer.KafkaesqueConsumerDelegate.DelegateCreationInfo;
+import in.rcard.kafkaesque.consumer.KafkaesqueConsumer.DelegateCreationInfo;
 import java.util.concurrent.TimeUnit;
 import org.apache.kafka.common.serialization.Deserializer;
 

@@ -1,6 +1,5 @@
 package in.rcard.kafkaesque.consumer;
 
-import in.rcard.kafkaesque.consumer.KafkaesqueConsumer.KafkaesqueConsumerDelegate.DelegateCreationInfo;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -30,15 +29,15 @@ import org.awaitility.core.ConditionTimeoutException;
 public class KafkaesqueConsumer<Key, Value> {
 
   private final KafkaConsumer<Key, Value> kafkaConsumer;
-  
+
   private final long interval;
   private final TimeUnit timeUnit;
   private final int emptyPollsCount;
   private final long emptyPollsInterval;
   private final TimeUnit emptyPollsTimeUnit;
-  
+
   private final DelegateCreationInfo<Key, Value> creationInfo;
-  
+
   KafkaesqueConsumer(
       String brokersUrl,
       long interval,
@@ -55,7 +54,7 @@ public class KafkaesqueConsumer<Key, Value> {
     this.creationInfo = creationInfo;
     this.kafkaConsumer = createKafkaConsumer(brokersUrl);
   }
-  
+
   private KafkaConsumer<Key, Value> createKafkaConsumer(String brokersUrl) {
     final Properties props = new Properties();
     props.put(ConsumerConfig.GROUP_ID_CONFIG, "kafkaesque-consumer");
@@ -63,8 +62,7 @@ public class KafkaesqueConsumer<Key, Value> {
     props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, brokersUrl);
     props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "true");
     props.put(
-        ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG,
-        creationInfo.getKeyDeserializer().getClass());
+        ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, creationInfo.getKeyDeserializer().getClass());
     props.put(
         ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG,
         creationInfo.getValueDeserializer().getClass());
@@ -72,7 +70,7 @@ public class KafkaesqueConsumer<Key, Value> {
     subscribeConsumerToTopic(consumer, creationInfo.getTopic());
     return consumer;
   }
-  
+
   private void subscribeConsumerToTopic(KafkaConsumer<Key, Value> consumer, String topic) {
     CountDownLatch latch = new CountDownLatch(1);
     consumer.subscribe(
@@ -80,11 +78,11 @@ public class KafkaesqueConsumer<Key, Value> {
         new ConsumerRebalanceListener() {
           @Override
           public void onPartitionsRevoked(Collection<TopicPartition> partitions) {}
-          
+
           @Override
           public void onPartitionsAssigned(Collection<TopicPartition> partitions) {
             latch.countDown();
-//                    System.out.println("Assigned");
+            //                    System.out.println("Assigned");
           }
         });
     Awaitility.await()
@@ -102,7 +100,7 @@ public class KafkaesqueConsumer<Key, Value> {
               return assigned;
             });
   }
-  
+
   /**
    * Polls the broker and reads the messages contained in the configured topic.
    *
@@ -112,7 +110,7 @@ public class KafkaesqueConsumer<Key, Value> {
     try {
       final AtomicInteger emptyCycles = new AtomicInteger(emptyPollsCount);
       final List<ConsumerRecord<Key, Value>> readMessages = new ArrayList<>();
-//      System.out.println("Empty cycles to await: " + emptyPollsCount);
+      //      System.out.println("Empty cycles to await: " + emptyPollsCount);
       Awaitility.await()
           .atMost(interval, timeUnit)
           .pollInterval(emptyPollsInterval, emptyPollsTimeUnit)
@@ -120,16 +118,14 @@ public class KafkaesqueConsumer<Key, Value> {
               () -> {
                 if (readNewMessages(readMessages) == 0) {
                   final int remainingCycles = emptyCycles.decrementAndGet();
-//                  System.out.println("Remaining empty cycles: " + remainingCycles);
-//                  System.out.println(System.currentTimeMillis());
+                  //                  System.out.println("Remaining empty cycles: " +
+                  // remainingCycles);
+                  //                  System.out.println(System.currentTimeMillis());
                   return remainingCycles == 0;
                 }
                 return false;
               });
-      return new AssertionsOnConsumedDelegate<>(
-          new AssertionsOnConsumed<>(readMessages),
-          this
-      );
+      return new AssertionsOnConsumedDelegate<>(new AssertionsOnConsumed<>(readMessages), this);
     } catch (ConditionTimeoutException ctex) {
       throw new AssertionError(
           String.format(
@@ -157,65 +153,41 @@ public class KafkaesqueConsumer<Key, Value> {
   public void andCloseConsumer() {
     kafkaConsumer.close();
   }
-  
+
   /**
-   * Represents the concrete Kafka consumer that uses a specific technology or library as
-   * implementation (e.g. <a href="https://spring.io/projects/spring-kafka" target="_blank">Spring
-   * Kafka</a>).
+   * Information needed to create a concrete Kafka consumer:
+   *
+   * <ul>
+   *   <li>A topic
+   *   <li>A key deserializer
+   *   <li>A value deserializer
+   * </ul>
    *
    * @param <Key> The type of the messages' key
    * @param <Value> The type of the messages' value
    */
-  interface KafkaesqueConsumerDelegate<Key, Value> {
+  static class DelegateCreationInfo<Key, Value> {
+    private final String topic;
+    private final Deserializer<Key> keyDeserializer;
+    private final Deserializer<Value> valueDeserializer;
 
-    /**
-     * Returns the messages that are available in a specific topic of a Kafka broker.
-     *
-     * @return A list of Kafka messages
-     */
-    List<ConsumerRecord<Key, Value>> poll();
+    DelegateCreationInfo(
+        String topic, Deserializer<Key> keyDeserializer, Deserializer<Value> valueDeserializer) {
+      this.topic = topic;
+      this.keyDeserializer = keyDeserializer;
+      this.valueDeserializer = valueDeserializer;
+    }
 
-    /**
-     * Closes the consumer. Every call to the {@link #poll()} method after having close a consumer
-     * <strong>must</strong> raise some king of exceptions.
-     */
-    void close();
+    public String getTopic() {
+      return topic;
+    }
 
-    /**
-     * Information needed to create a concrete Kafka consumer:
-     *
-     * <ul>
-     *   <li>A topic
-     *   <li>A key deserializer
-     *   <li>A value deserializer
-     * </ul>
-     *
-     * @param <Key> The type of the messages' key
-     * @param <Value> The type of the messages' value
-     */
-    class DelegateCreationInfo<Key, Value> {
-      private final String topic;
-      private final Deserializer<Key> keyDeserializer;
-      private final Deserializer<Value> valueDeserializer;
+    public Deserializer<Key> getKeyDeserializer() {
+      return keyDeserializer;
+    }
 
-      DelegateCreationInfo(
-          String topic, Deserializer<Key> keyDeserializer, Deserializer<Value> valueDeserializer) {
-        this.topic = topic;
-        this.keyDeserializer = keyDeserializer;
-        this.valueDeserializer = valueDeserializer;
-      }
-
-      public String getTopic() {
-        return topic;
-      }
-
-      public Deserializer<Key> getKeyDeserializer() {
-        return keyDeserializer;
-      }
-
-      public Deserializer<Value> getValueDeserializer() {
-        return valueDeserializer;
-      }
+    public Deserializer<Value> getValueDeserializer() {
+      return valueDeserializer;
     }
   }
 }

@@ -8,7 +8,7 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.awaitility.Awaitility;
 import org.awaitility.core.ConditionTimeoutException;
 
-class AfterAllAssertions<Key, Value> {
+public class AfterAllAssertions<Key, Value> {
   
   private final KafkaesqueProducer<Key, Value> producer;
   private final List<Record<Key, Value>> records;
@@ -34,7 +34,7 @@ class AfterAllAssertions<Key, Value> {
    *
    * @param messagesConsumer The conditions that must hold on the whole list of messages
    */
-  void asserting(Consumer<List<ProducerRecord<Key, Value>>> messagesConsumer) {
+  public void asserting(Consumer<List<ProducerRecord<Key, Value>>> messagesConsumer) {
     final List<ProducerRecord<Key, Value>> producerRecords = producer.sendRecords(records);
     consume(messagesConsumer, producerRecords);
   }

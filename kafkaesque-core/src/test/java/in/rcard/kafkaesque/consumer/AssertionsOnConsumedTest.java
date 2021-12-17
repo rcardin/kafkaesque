@@ -1,4 +1,4 @@
-package in.rcard.kafkaesque;
+package in.rcard.kafkaesque.consumer;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -6,7 +6,6 @@ import static org.hamcrest.Matchers.contains;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 
-import in.rcard.kafkaesque.consumer.AssertionsOnConsumed;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -20,9 +19,10 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class ConsumedResultsTest {
+class AssertionsOnConsumedTest {
 
-  @Mock private ConsumerRecord<String, String> record;
+  @Mock
+  private ConsumerRecord<String, String> record;
 
   private List<ConsumerRecord<String, String>> records;
   private AssertionsOnConsumed<String, String> assertionsOnConsumed;

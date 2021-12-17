@@ -6,17 +6,13 @@ import java.util.List;
 
 public class InputTopic<Key, Value> {
 
-  private final KafkaesqueProducerDSL<Key, Value> producerBuilder;
-  
-  InputTopic(
-      KafkaesqueProducerDSL<Key, Value> producerBuilder) {
-    this.producerBuilder = producerBuilder;
+  private final KafkaesqueProducerDSL<Key, Value> dsl;
+
+  InputTopic(KafkaesqueProducerDSL<Key, Value> dsl) {
+    this.dsl = dsl;
   }
-  
+
   public void pipeRecordList(List<Record<Key, Value>> records) {
-    producerBuilder
-        .messages(records)
-        .expecting()
-        .assertingAfterAll(producerRecords -> {});
+    dsl.messages(records).andAfterAll().asserting(producerRecords -> {});
   }
 }
