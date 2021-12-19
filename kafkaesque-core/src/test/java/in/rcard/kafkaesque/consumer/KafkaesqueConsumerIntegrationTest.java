@@ -74,6 +74,8 @@ class KafkaesqueConsumerIntegrationTest {
     
     final AssertionsOnConsumedDelegate<String, String> consumed = consumer.poll();
     consumed.havingRecordsSize(2);
+    
+    consumer.close();
   }
   
   @Test
@@ -100,20 +102,54 @@ class KafkaesqueConsumerIntegrationTest {
         .hasCauseInstanceOf(RuntimeException.class)
         .getCause()
         .hasMessage("Error deserializing key/value for partition test-topic-0 at offset 0. If needed, please seek past the record to continue consumption.");
+  
+    consumer.close();
   }
-//
-//  @Test
-//  void pollShouldThrowAnAssertionErrorIfTheConditionsOnTheEmptyPollAreNotMet() {
-//    final List<ConsumerRecord<String, String>> records = Collections.singletonList(record);
-//    //noinspection unchecked
-//    given(delegate.poll()).willReturn(records, records, records);
-//    consumer =
-//        new KafkaesqueConsumer<>(
-//            100L, TimeUnit.MILLISECONDS, 2, 50L, TimeUnit.MILLISECONDS, delegate);
-//    assertThatThrownBy(() -> consumer.poll())
-//        .isInstanceOf(AssertionError.class)
-//        .hasMessage(
-//            "The consumer reads new messages until the end of the given time interval: "
-//                + "100 MILLISECONDS");
-//  }
+
+  @Test
+  void pollShouldThrowAnAssertionErrorIfTheConditionsOnTheEmptyPollAreNotMetAndNoMessagesWasRead() {
+    KafkaesqueConsumer<String, String> consumer = new KafkaesqueConsumer<>(
+        brokerUrl,
+        1000L,
+        TimeUnit.MILLISECONDS,
+        20,
+        50L,
+        TimeUnit.MILLISECONDS,
+        new DelegateCreationInfo<>(
+            "test-topic-1", new StringDeserializer(), new StringDeserializer()
+        )
+    );
+  
+    assertThatThrownBy(consumer::poll)
+        .isInstanceOf(AssertionError.class)
+        .hasMessage("The consumer cannot find any message during the given time interval: 1000 MILLISECONDS");
+  
+    consumer.close();
+  }
+  
+  @Test
+  void pollShouldThrowAnAssertionErrorIfTheConditionsOnTheEmptyPollAreNotMetAndSomeMessagesWasRead()
+      throws ExecutionException, InterruptedException {
+  
+    producer.send(new ProducerRecord<>(TEST_TOPIC, "4", "data4")).get();
+    producer.send(new ProducerRecord<>(TEST_TOPIC, "5", "data5")).get();
+    
+    KafkaesqueConsumer<String, String> consumer = new KafkaesqueConsumer<>(
+        brokerUrl,
+        1000L,
+        TimeUnit.MILLISECONDS,
+        20,
+        50L,
+        TimeUnit.MILLISECONDS,
+        new DelegateCreationInfo<>(
+            "test-topic", new StringDeserializer(), new StringDeserializer()
+        )
+    );
+    
+    assertThatThrownBy(consumer::poll)
+        .isInstanceOf(AssertionError.class)
+        .hasMessage("The consumer reads new messages until the end of the given time interval: 1000 MILLISECONDS");
+    
+    consumer.close();
+  }
 }
