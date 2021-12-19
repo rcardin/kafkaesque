@@ -1,4 +1,4 @@
-package in.rcard.kafkaesque;
+package in.rcard.kafkaesque.producer;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
