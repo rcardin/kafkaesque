@@ -82,7 +82,7 @@ public class KafkaesqueConsumer<Key, Value> {
           @Override
           public void onPartitionsAssigned(Collection<TopicPartition> partitions) {
             latch.countDown();
-            //                    System.out.println("Assigned");
+            System.out.println("Assigned");
           }
         });
     Awaitility.await()
@@ -95,6 +95,7 @@ public class KafkaesqueConsumer<Key, Value> {
               consumer.poll(Duration.ofMillis(100));
               final boolean assigned = latch.getCount() == 0;
               if (assigned) {
+                System.out.println("Resetting the offset to beginning");
                 consumer.seekToBeginning(consumer.assignment());
               }
               return assigned;
@@ -107,10 +108,10 @@ public class KafkaesqueConsumer<Key, Value> {
    * @return The read messages
    */
   AssertionsOnConsumedDelegate<Key, Value> poll() {
+    final List<ConsumerRecord<Key, Value>> readMessages = new ArrayList<>();
     try {
       final AtomicInteger emptyCycles = new AtomicInteger(emptyPollsCount);
-      final List<ConsumerRecord<Key, Value>> readMessages = new ArrayList<>();
-      //      System.out.println("Empty cycles to await: " + emptyPollsCount);
+      System.out.println("Empty cycles to await: " + emptyPollsCount);
       Awaitility.await()
           .atMost(interval, timeUnit)
           .pollInterval(emptyPollsInterval, emptyPollsTimeUnit)
@@ -118,19 +119,25 @@ public class KafkaesqueConsumer<Key, Value> {
               () -> {
                 if (readNewMessages(readMessages) == 0) {
                   final int remainingCycles = emptyCycles.decrementAndGet();
-                  //                  System.out.println("Remaining empty cycles: " +
-                  // remainingCycles);
-                  //                  System.out.println(System.currentTimeMillis());
+                  System.out.println("Remaining empty cycles: " + remainingCycles);
+                  System.out.println(System.currentTimeMillis());
                   return remainingCycles == 0;
                 }
                 return false;
               });
       return new AssertionsOnConsumedDelegate<>(new AssertionsOnConsumed<>(readMessages), this);
     } catch (ConditionTimeoutException ctex) {
-      throw new AssertionError(
-          String.format(
-              "The consumer reads new messages until the end of the given time interval: %d %s",
-              interval, timeUnit.toString()));
+      if (readMessages.isEmpty()) {
+        throw new AssertionError(
+            String.format(
+                "The consumer cannot find any message during the given time interval: %d %s",
+                interval, timeUnit.toString()));
+      } else {
+        throw new AssertionError(
+            String.format(
+                "The consumer reads new messages until the end of the given time interval: %d %s",
+                interval, timeUnit.toString()));
+      }
     } catch (Exception ex) {
       throw new KafkaesqueConsumerPollException("Error during the poll operation", ex);
     }
@@ -138,19 +145,19 @@ public class KafkaesqueConsumer<Key, Value> {
 
   private int readNewMessages(List<ConsumerRecord<Key, Value>> readMessages) {
     final ConsumerRecords<Key, Value> polled = kafkaConsumer.poll(Duration.ofMillis(50L));
+    System.out.println("Polled: " + polled.count());
     final List<ConsumerRecord<Key, Value>> newMessages = new ArrayList<>();
     polled.records(creationInfo.getTopic()).forEach(newMessages::add);
     if (!newMessages.isEmpty()) {
       readMessages.addAll(newMessages);
-      return newMessages.size();
     }
-    return 0;
+    return newMessages.size();
   }
 
   /**
    * Closes the consumer. After the closing operation, the consumer cannot read any more messages.
    */
-  public void andCloseConsumer() {
+  public void close() {
     kafkaConsumer.close();
   }
 

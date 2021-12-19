@@ -27,10 +27,10 @@ public class AssertionsOnConsumedDelegate<Key, Value> {
   }
   
   /**
-   * @see KafkaesqueConsumer#andCloseConsumer()
+   * @see KafkaesqueConsumer#close()
    */
   public void andCloseConsumer() {
-    consumer.andCloseConsumer();
+    consumer.close();
   }
   
   /**

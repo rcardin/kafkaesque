@@ -31,7 +31,7 @@ class AssertionsOnConsumedDelegateTest {
   @Test
   void andCloseConsumerShouldCallTheSameMethodOnTheConsumer() {
     delegate.andCloseConsumer();
-    verify(consumer, times(1)).andCloseConsumer();
+    verify(consumer, times(1)).close();
   }
 
   @Test
