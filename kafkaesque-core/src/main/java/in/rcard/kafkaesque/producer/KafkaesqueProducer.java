@@ -1,6 +1,5 @@
 package in.rcard.kafkaesque.producer;
 
-import in.rcard.kafkaesque.producer.KafkaesqueProducer.KafkaesqueProducerDelegate.DelegateCreationInfo;
 import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
@@ -155,40 +154,29 @@ public final class KafkaesqueProducer<Key, Value> {
       return "Record{" + "key=" + key + ", value=" + value + '}';
     }
   }
+  
+  static class DelegateCreationInfo<Key, Value> {
+    private final String topic;
+    private final Serializer<Key> keySerializer;
+    private final Serializer<Value> valueSerializer;
 
-  /**
-   * Represents the concrete Kafka producer that uses a specific technology or library as
-   * implementation (e.g. <a href="https://spring.io/projects/spring-kafka" target="_blank">Spring
-   * Kafka</a>). It sends the records to the embedded Kafka broker.
-   *
-   * @param <Key> The type of the messages' key
-   * @param <Value> The type of the messages' value
-   */
-  interface KafkaesqueProducerDelegate<Key, Value> {
-    
-    class DelegateCreationInfo<Key, Value> {
-      private final String topic;
-      private final Serializer<Key> keySerializer;
-      private final Serializer<Value> valueSerializer;
+    public DelegateCreationInfo(
+        String topic, Serializer<Key> keySerializer, Serializer<Value> valueSerializer) {
+      this.topic = topic;
+      this.keySerializer = keySerializer;
+      this.valueSerializer = valueSerializer;
+    }
 
-      public DelegateCreationInfo(
-          String topic, Serializer<Key> keySerializer, Serializer<Value> valueSerializer) {
-        this.topic = topic;
-        this.keySerializer = keySerializer;
-        this.valueSerializer = valueSerializer;
-      }
+    public String getTopic() {
+      return topic;
+    }
 
-      public String getTopic() {
-        return topic;
-      }
+    public Serializer<Key> getKeySerializer() {
+      return keySerializer;
+    }
 
-      public Serializer<Key> getKeySerializer() {
-        return keySerializer;
-      }
-
-      public Serializer<Value> getValueSerializer() {
-        return valueSerializer;
-      }
+    public Serializer<Value> getValueSerializer() {
+      return valueSerializer;
     }
   }
 }

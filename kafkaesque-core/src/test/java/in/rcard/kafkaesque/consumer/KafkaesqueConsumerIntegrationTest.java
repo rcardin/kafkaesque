@@ -22,6 +22,7 @@ import org.testcontainers.utility.DockerImageName;
 class KafkaesqueConsumerIntegrationTest {
   
   public static final String TEST_TOPIC = "test-topic";
+  
   @Container
   private final KafkaContainer kafka =
       new KafkaContainer(DockerImageName.parse("confluentinc/cp-kafka:6.2.1"));

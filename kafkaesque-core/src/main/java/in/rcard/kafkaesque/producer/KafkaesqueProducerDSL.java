@@ -1,6 +1,6 @@
 package in.rcard.kafkaesque.producer;
 
-import in.rcard.kafkaesque.producer.KafkaesqueProducer.KafkaesqueProducerDelegate.DelegateCreationInfo;
+import in.rcard.kafkaesque.producer.KafkaesqueProducer.DelegateCreationInfo;
 import in.rcard.kafkaesque.producer.KafkaesqueProducer.Record;
 import java.time.Duration;
 import java.util.List;
