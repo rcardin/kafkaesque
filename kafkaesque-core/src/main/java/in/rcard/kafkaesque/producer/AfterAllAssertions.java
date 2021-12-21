@@ -49,7 +49,7 @@ public class AfterAllAssertions<Key, Value> {
     } catch (ConditionTimeoutException ex) {
       throw new AssertionError(
           String.format(
-              "The consuming of the list of messages %s takes more than %d milliseconds",
+              "Consuming the list of %s messages takes more than %d milliseconds",
               records, waitForConsumerDuration.toMillis()));
     }
   }

@@ -21,7 +21,8 @@ import org.testcontainers.utility.DockerImageName;
 @Testcontainers
 class KafkaesqueConsumerIntegrationTest {
   
-  public static final String TEST_TOPIC = "test-topic";
+  private static final String TEST_TOPIC = "test-topic";
+  private static final StringDeserializer STRING_DESERIALIZER = new StringDeserializer();
   
   @Container
   private final KafkaContainer kafka =
@@ -38,12 +39,11 @@ class KafkaesqueConsumerIntegrationTest {
     brokerUrl = kafka.getBootstrapServers();
     
     setUpProducer();
-    
-    final StringDeserializer stringDeserializer = new StringDeserializer();
+  
     creationInfo = new DelegateCreationInfo<>(
         TEST_TOPIC,
-        stringDeserializer,
-        stringDeserializer
+        STRING_DESERIALIZER,
+        STRING_DESERIALIZER
     );
   }
 

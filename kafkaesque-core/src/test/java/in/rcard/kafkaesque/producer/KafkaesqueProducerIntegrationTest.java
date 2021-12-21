@@ -30,9 +30,9 @@ import org.testcontainers.utility.DockerImageName;
 @Testcontainers
 class KafkaesqueProducerIntegrationTest {
 
-  public static final String TEST_TOPIC = "test-topic";
-  public static final String TEST_TOPIC_1 = "test-topic-1";
-  public static final StringSerializer STRING_SERIALIZER = new StringSerializer();
+  private static final String TEST_TOPIC = "test-topic";
+  private static final String TEST_TOPIC_1 = "test-topic-1";
+  private static final StringSerializer STRING_SERIALIZER = new StringSerializer();
   
   @Container
   private final KafkaContainer kafka =
