@@ -49,10 +49,19 @@ class AfterEachAssertions<Key, Value> {
           .atMost(waitForConsumerDuration)
           .untilAsserted(() -> messageConsumer.accept(record));
     } catch (ConditionTimeoutException ex) {
-      throw new AssertionError(
-          String.format(
-              "The consuming of the message %s takes more than %d milliseconds",
-              record, waitForConsumerDuration.toMillis()));
+      handleConditionTimeoutException(record, ex);
     }
+  }
+  
+  private void handleConditionTimeoutException(
+      ProducerRecord<Key, Value> record,
+      ConditionTimeoutException ex) {
+    if (ex.getCause() instanceof AssertionError) {
+      throw (AssertionError) ex.getCause();
+    }
+    throw new AssertionError(
+        String.format(
+            "The consuming of the message %s takes more than %d milliseconds",
+            record, waitForConsumerDuration.toMillis()));
   }
 }

@@ -47,10 +47,19 @@ public class AfterAllAssertions<Key, Value> {
           .atMost(waitForConsumerDuration)
           .untilAsserted(() -> messagesConsumer.accept(records));
     } catch (ConditionTimeoutException ex) {
-      throw new AssertionError(
-          String.format(
-              "Consuming the list of %s messages takes more than %d milliseconds",
-              records, waitForConsumerDuration.toMillis()));
+      handleConditionTimeoutException(records, ex);
     }
+  }
+  
+  private void handleConditionTimeoutException(
+      List<ProducerRecord<Key, Value>> records,
+      ConditionTimeoutException ex) {
+    if (ex.getCause() instanceof AssertionError) {
+      throw (AssertionError) ex.getCause();
+    }
+    throw new AssertionError(
+        String.format(
+            "Consuming the list of %s messages takes more than %d milliseconds",
+            records, waitForConsumerDuration.toMillis()));
   }
 }
