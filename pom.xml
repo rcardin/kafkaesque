@@ -7,7 +7,7 @@
 
   <groupId>in.rcard</groupId>
   <artifactId>kafkaesque</artifactId>
-  <version>0.4.0-SNAPSHOT</version>
+  <version>1.0.0-RC1</version>
   <packaging>pom</packaging>
 
   <name>Kafkaesque</name>
@@ -27,11 +27,6 @@
 
   <dependencyManagement>
     <dependencies>
-      <dependency>
-        <groupId>in.rcard</groupId>
-        <artifactId>kafkaesque-core</artifactId>
-        <version>0.4.0-SNAPSHOT</version>
-      </dependency>
       <dependency>
         <groupId>org.apache.kafka</groupId>
         <artifactId>kafka-clients</artifactId>
