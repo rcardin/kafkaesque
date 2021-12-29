@@ -65,8 +65,8 @@ class KafkaesqueConsumerIntegrationTest {
   
     KafkaesqueConsumer<String, String> consumer = new KafkaesqueConsumer<>(
         brokerUrl,
-        1000L,
-        TimeUnit.MILLISECONDS,
+        5L,
+        TimeUnit.SECONDS,
         5,
         50L,
         TimeUnit.MILLISECONDS,
