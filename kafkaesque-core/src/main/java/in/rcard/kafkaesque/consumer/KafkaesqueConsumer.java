@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Properties;
+import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -57,7 +58,7 @@ public class KafkaesqueConsumer<Key, Value> {
 
   private KafkaConsumer<Key, Value> createKafkaConsumer(String brokersUrl) {
     final Properties props = new Properties();
-    props.put(ConsumerConfig.GROUP_ID_CONFIG, "kafkaesque-consumer");
+    props.put(ConsumerConfig.GROUP_ID_CONFIG, "kafkaesque-consumer-" + UUID.randomUUID());
     props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
     props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, brokersUrl);
     props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "true");
