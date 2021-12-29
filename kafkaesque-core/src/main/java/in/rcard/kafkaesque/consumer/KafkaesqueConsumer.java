@@ -94,7 +94,7 @@ public class KafkaesqueConsumer<Key, Value> {
               // the consumer starts to poll messages. So, we forced the consumer to poll
               // from the topic and we wait until the consumer is assigned to the topic.
               try {
-              consumer.poll(Duration.ofMillis(100));
+                consumer.poll(Duration.ofMillis(100));
               } catch (Exception e) {
                 // Ignore every exception during polling. We are only interested in the assignment
               }
