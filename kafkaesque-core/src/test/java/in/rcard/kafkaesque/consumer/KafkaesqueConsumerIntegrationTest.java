@@ -21,7 +21,6 @@ import org.testcontainers.utility.DockerImageName;
 @Testcontainers
 class KafkaesqueConsumerIntegrationTest {
   
-  private static final String TEST_TOPIC = "test-topic";
   private static final StringDeserializer STRING_DESERIALIZER = new StringDeserializer();
   
   @Container
@@ -32,19 +31,11 @@ class KafkaesqueConsumerIntegrationTest {
   
   private KafkaProducer<String, String> producer;
   
-  private DelegateCreationInfo<String, String> creationInfo;
-  
   @BeforeEach
   void setUp() {
     brokerUrl = kafka.getBootstrapServers();
     
     setUpProducer();
-  
-    creationInfo = new DelegateCreationInfo<>(
-        TEST_TOPIC,
-        STRING_DESERIALIZER,
-        STRING_DESERIALIZER
-    );
   }
 
   private void setUpProducer() {
@@ -60,8 +51,9 @@ class KafkaesqueConsumerIntegrationTest {
   @Test
   void pollShouldReturnTheListOfConsumerRecords() throws ExecutionException, InterruptedException {
   
-    producer.send(new ProducerRecord<>(TEST_TOPIC, "1", "data1")).get();
-    producer.send(new ProducerRecord<>(TEST_TOPIC, "2", "data2")).get();
+    final String topic = "test-topic-1";
+    producer.send(new ProducerRecord<>(topic, "1", "data1")).get();
+    producer.send(new ProducerRecord<>(topic, "2", "data2")).get();
   
     KafkaesqueConsumer<String, String> consumer = new KafkaesqueConsumer<>(
         brokerUrl,
@@ -70,7 +62,11 @@ class KafkaesqueConsumerIntegrationTest {
         5,
         50L,
         TimeUnit.MILLISECONDS,
-        creationInfo
+        new DelegateCreationInfo<>(
+            topic,
+            STRING_DESERIALIZER,
+            STRING_DESERIALIZER
+        )
     );
     
     final AssertionsOnConsumedDelegate<String, String> consumed = consumer.poll();
@@ -83,7 +79,8 @@ class KafkaesqueConsumerIntegrationTest {
   void pollShouldThrowAKafkaesqueConsumerPollExceptionIfSomethingWentWrongDuringThePolling()
       throws ExecutionException, InterruptedException {
   
-    producer.send(new ProducerRecord<>(TEST_TOPIC, "3", "data3")).get();
+    final String topic = "test-topic-2";
+    producer.send(new ProducerRecord<>(topic, "3", "data3")).get();
   
     KafkaesqueConsumer<Integer, String> consumer = new KafkaesqueConsumer<>(
         brokerUrl,
@@ -93,7 +90,7 @@ class KafkaesqueConsumerIntegrationTest {
         50L,
         TimeUnit.MILLISECONDS,
         new DelegateCreationInfo<>(
-            TEST_TOPIC, new IntegerDeserializer(), new StringDeserializer()
+            topic, new IntegerDeserializer(), new StringDeserializer()
         )
     );
   
@@ -102,7 +99,7 @@ class KafkaesqueConsumerIntegrationTest {
         .hasMessage("Error during the poll operation")
         .hasCauseInstanceOf(RuntimeException.class)
         .getCause()
-        .hasMessage("Error deserializing key/value for partition test-topic-0 at offset 0. If needed, please seek past the record to continue consumption.");
+        .hasMessage("Error deserializing key/value for partition test-topic-2-0 at offset 0. If needed, please seek past the record to continue consumption.");
   
     consumer.close();
   }
@@ -117,7 +114,7 @@ class KafkaesqueConsumerIntegrationTest {
         50L,
         TimeUnit.MILLISECONDS,
         new DelegateCreationInfo<>(
-            "test-topic-1", new StringDeserializer(), new StringDeserializer()
+            "test-topic-3", new StringDeserializer(), new StringDeserializer()
         )
     );
   
@@ -132,8 +129,9 @@ class KafkaesqueConsumerIntegrationTest {
   void pollShouldThrowAnAssertionErrorIfTheConditionsOnTheEmptyPollAreNotMetAndSomeMessagesWasRead()
       throws ExecutionException, InterruptedException {
   
-    producer.send(new ProducerRecord<>(TEST_TOPIC, "4", "data4")).get();
-    producer.send(new ProducerRecord<>(TEST_TOPIC, "5", "data5")).get();
+    final String topic = "test-topic-4";
+    producer.send(new ProducerRecord<>(topic, "4", "data4")).get();
+    producer.send(new ProducerRecord<>(topic, "5", "data5")).get();
     
     KafkaesqueConsumer<String, String> consumer = new KafkaesqueConsumer<>(
         brokerUrl,
@@ -143,7 +141,7 @@ class KafkaesqueConsumerIntegrationTest {
         50L,
         TimeUnit.MILLISECONDS,
         new DelegateCreationInfo<>(
-            "test-topic", new StringDeserializer(), new StringDeserializer()
+            topic, new StringDeserializer(), new StringDeserializer()
         )
     );
     
