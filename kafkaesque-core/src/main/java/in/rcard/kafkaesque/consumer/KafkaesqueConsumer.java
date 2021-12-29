@@ -58,7 +58,7 @@ public class KafkaesqueConsumer<Key, Value> {
 
   private KafkaConsumer<Key, Value> createKafkaConsumer(String brokersUrl) {
     final Properties props = new Properties();
-    props.put(ConsumerConfig.GROUP_ID_CONFIG, "kafkaesque-consumer-" + UUID.randomUUID());
+    props.put(ConsumerConfig.GROUP_ID_CONFIG, "kafkaesque-consumer");
     props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
     props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, brokersUrl);
     props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "true");
@@ -93,7 +93,11 @@ public class KafkaesqueConsumer<Key, Value> {
               // The actual assignment of a topic to a consumer is done after a while
               // the consumer starts to poll messages. So, we forced the consumer to poll
               // from the topic and we wait until the consumer is assigned to the topic.
+              try {
               consumer.poll(Duration.ofMillis(100));
+              } catch (Exception e) {
+                // Ignore every exception during polling. We are only interested in the assignment
+              }
               final boolean assigned = latch.getCount() == 0;
               if (assigned) {
 //                System.out.println("Resetting the offset to beginning");
