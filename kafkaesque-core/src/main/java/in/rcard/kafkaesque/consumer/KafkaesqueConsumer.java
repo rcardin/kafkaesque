@@ -92,7 +92,7 @@ public class KafkaesqueConsumer<Key, Value> {
             () -> {
               // The actual assignment of a topic to a consumer is done after a while
               // the consumer starts to poll messages. So, we forced the consumer to poll
-              // from the topic and we wait until the consumer is assigned to the topic.
+              // from the topic, and we wait until the consumer is assigned to the topic.
               try {
                 consumer.poll(Duration.ofMillis(100));
               } catch (Exception e) {
@@ -122,7 +122,7 @@ public class KafkaesqueConsumer<Key, Value> {
           .pollInterval(emptyPollsInterval, emptyPollsTimeUnit)
           .until(
               () -> {
-                if (readNewMessages(readMessages) == 0) {
+                if (isEmptyPollAfterSomeMessagesWereRead(readMessages)) {
                   final int remainingCycles = emptyCycles.decrementAndGet();
 //                  System.out.println("Remaining empty cycles: " + remainingCycles);
 //                  System.out.println(System.currentTimeMillis());
@@ -147,7 +147,11 @@ public class KafkaesqueConsumer<Key, Value> {
       throw new KafkaesqueConsumerPollException("Error during the poll operation", ex);
     }
   }
-
+  
+  private boolean isEmptyPollAfterSomeMessagesWereRead(List<ConsumerRecord<Key, Value>> readMessages) {
+    return  readNewMessages(readMessages) == 0 && !readMessages.isEmpty();
+  }
+  
   private int readNewMessages(List<ConsumerRecord<Key, Value>> readMessages) {
     final ConsumerRecords<Key, Value> polled = kafkaConsumer.poll(Duration.ofMillis(50L));
 //    System.out.println("Polled: " + polled.count());
