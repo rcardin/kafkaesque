@@ -4,12 +4,10 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Properties;
-import java.util.UUID;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRebalanceListener;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
@@ -18,6 +16,9 @@ import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.serialization.Deserializer;
 import org.awaitility.Awaitility;
 import org.awaitility.core.ConditionTimeoutException;
+import org.aeonbits.owner.ConfigFactory;
+
+import static in.rcard.kafkaesque.consumer.KafkaesqueConsumerConfig.*;
 
 /**
  * Represents a consumer that can read messages with key of type {@code Key}, and value of type
@@ -57,17 +58,20 @@ public class KafkaesqueConsumer<Key, Value> {
   }
 
   private KafkaConsumer<Key, Value> createKafkaConsumer(String brokersUrl) {
-    final Properties props = new Properties();
-    props.put(ConsumerConfig.GROUP_ID_CONFIG, "kafkaesque-consumer");
-    props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
-    props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, brokersUrl);
-    props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "true");
-    props.put(
-        ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, creationInfo.getKeyDeserializer().getClass());
-    props.put(
-        ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG,
-        creationInfo.getValueDeserializer().getClass());
-    final KafkaConsumer<Key, Value> consumer = new KafkaConsumer<>(props);
+    ConfigFactory.setProperty("configFile", "kafkaesque");
+    final KafkaesqueConsumerConfig consumerConfig = ConfigFactory.create(
+            KafkaesqueConsumerConfig.class,
+            Map.of(
+                    KAFKAESQUE_CONSUMER_CONFIG_BOOTSTRAP_SERVERS,
+                    brokersUrl,
+                    KAFKAESQUE_CONSUMER_CONFIG_KEY_DESERIALIZER,
+                    creationInfo.getKeyDeserializer().getClass().getName(),
+                    KAFKAESQUE_CONSUMER_CONFIG_VALUE_DESERIALIZER,
+                    creationInfo.getValueDeserializer().getClass().getName()
+            )
+    );
+    final Map consumerProperties = KafkaesqueConsumerConfigMapper.toConsumerProperties(consumerConfig);
+    final KafkaConsumer<Key, Value> consumer = new KafkaConsumer<>(consumerProperties);
     subscribeConsumerToTopic(consumer, creationInfo.getTopic());
     return consumer;
   }
