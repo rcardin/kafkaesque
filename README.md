@@ -119,7 +119,7 @@ Since the library is published in the GitHub Packages repository, you need to ad
 #### Configuration
 
 _Kafkaesque_ also supports internal producer and consumer configuration via environment variables, system properties or a `kafkaesque.properties` configuration file.
-The configuration properties follow the same notation as in [spring-kafka]() with the prefix being `kafkaesque.*` instead of `spring.kafka.*`, here is an example:
+The configuration properties follow the same notation as in [spring-kafka](https://docs.spring.io/spring-boot/docs/current/reference/html/application-properties.html#appendix.application-properties.integration) with the prefix being `kafkaesque.*` instead of `spring.kafka.*`, here is an example:
 
 ```properties
 kafkaesque.consumer.group-id=example-consumer-group
