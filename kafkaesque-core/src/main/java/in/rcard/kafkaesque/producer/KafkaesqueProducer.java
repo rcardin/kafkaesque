@@ -4,19 +4,20 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
 import java.util.Map;
+import java.util.Properties;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
+import in.rcard.kafkaesque.config.KafkaesqueConfigLoader;
+import in.rcard.kafkaesque.config.KafkaesqueProducerConfig;
 import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
 import org.apache.kafka.common.serialization.Serializer;
-import org.aeonbits.owner.ConfigFactory;
-
-import static in.rcard.kafkaesque.producer.KafkaesqueProducerConfig.*;
 
 /**
  * Represents a producer that sends messages with keys of type {@code Key} and with values of type
@@ -43,20 +44,19 @@ public final class KafkaesqueProducer<Key, Value> {
   }
 
   private KafkaProducer<Key, Value> createKafkaProducer(String brokerUrl) {
-    ConfigFactory.setProperty("configFile", "kafkaesque");
-    final KafkaesqueProducerConfig producerConfig = ConfigFactory.create(
-            KafkaesqueProducerConfig.class,
-            Map.of(
-                    KAFKAESQUE_PRODUCER_CONFIG_BOOTSTRAP_SERVERS,
-                    brokerUrl,
-                    KAFKAESQUE_PRODUCER_CONFIG_KEY_SERIALIZER,
-                    creationInfo.keySerializer.getClass().getName(),
-                    KAFKAESQUE_PRODUCER_CONFIG_VALUE_SERIALIZER,
-                    creationInfo.valueSerializer.getClass().getName()
-            )
+    Map creationProps = Map.of(
+            ProducerConfig.BOOTSTRAP_SERVERS_CONFIG,
+            brokerUrl,
+            ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG,
+            creationInfo.keySerializer.getClass().getName(),
+            ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,
+            creationInfo.valueSerializer.getClass().getName()
     );
-    final Map producerProps = KafkaesqueProducerConfigMapper.toProducerProperties(producerConfig);
-    return new KafkaProducer<>(producerProps);
+
+    final KafkaesqueProducerConfig producerConfig = KafkaesqueConfigLoader.loadProducerConfig();
+    final Properties producerProperties = toProducerProperties(producerConfig);
+    producerProperties.putAll(creationProps);
+    return new KafkaProducer<>(producerProperties);
   }
 
   ProducerRecord<Key, Value> sendRecord(Record<Key, Value> record) {
@@ -104,6 +104,20 @@ public final class KafkaesqueProducer<Key, Value> {
           }
         });
     return promiseOnMetadata;
+  }
+
+  public static Properties toProducerProperties(KafkaesqueProducerConfig kProducerConfig) {
+    final Properties props = new Properties();
+
+    props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, kProducerConfig.bootstrapServers());
+    props.put(ProducerConfig.CLIENT_ID_CONFIG, kProducerConfig.clientId());
+    props.put(ProducerConfig.RETRIES_CONFIG, kProducerConfig.retries());
+    props.put(ProducerConfig.ACKS_CONFIG, kProducerConfig.acks());
+    props.put(ProducerConfig.BATCH_SIZE_CONFIG, kProducerConfig.batchSize());
+    props.put(ProducerConfig.BUFFER_MEMORY_CONFIG, kProducerConfig.bufferMemory());
+    props.put(ProducerConfig.COMPRESSION_TYPE_CONFIG, kProducerConfig.compressionType());
+
+    return props;
   }
 
   /**

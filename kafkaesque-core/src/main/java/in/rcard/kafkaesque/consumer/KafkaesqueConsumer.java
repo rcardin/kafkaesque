@@ -1,24 +1,18 @@
 package in.rcard.kafkaesque.consumer;
 
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import org.apache.kafka.clients.consumer.ConsumerRebalanceListener;
-import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.apache.kafka.clients.consumer.ConsumerRecords;
-import org.apache.kafka.clients.consumer.KafkaConsumer;
+
+import in.rcard.kafkaesque.config.KafkaesqueConfigLoader;
+import in.rcard.kafkaesque.config.KafkaesqueConsumerConfig;
+import org.apache.kafka.clients.consumer.*;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.serialization.Deserializer;
 import org.awaitility.Awaitility;
 import org.awaitility.core.ConditionTimeoutException;
-import org.aeonbits.owner.ConfigFactory;
-
-import static in.rcard.kafkaesque.consumer.KafkaesqueConsumerConfig.*;
 
 /**
  * Represents a consumer that can read messages with key of type {@code Key}, and value of type
@@ -58,19 +52,18 @@ public class KafkaesqueConsumer<Key, Value> {
   }
 
   private KafkaConsumer<Key, Value> createKafkaConsumer(String brokersUrl) {
-    ConfigFactory.setProperty("configFile", "kafkaesque");
-    final KafkaesqueConsumerConfig consumerConfig = ConfigFactory.create(
-            KafkaesqueConsumerConfig.class,
-            Map.of(
-                    KAFKAESQUE_CONSUMER_CONFIG_BOOTSTRAP_SERVERS,
-                    brokersUrl,
-                    KAFKAESQUE_CONSUMER_CONFIG_KEY_DESERIALIZER,
-                    creationInfo.getKeyDeserializer().getClass().getName(),
-                    KAFKAESQUE_CONSUMER_CONFIG_VALUE_DESERIALIZER,
-                    creationInfo.getValueDeserializer().getClass().getName()
-            )
+    Map creationProps = Map.of(
+            ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG,
+            brokersUrl,
+            ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG,
+            creationInfo.getKeyDeserializer().getClass().getName(),
+            ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG,
+            creationInfo.getValueDeserializer().getClass().getName()
     );
-    final Map consumerProperties = KafkaesqueConsumerConfigMapper.toConsumerProperties(consumerConfig);
+
+    final KafkaesqueConsumerConfig consumerConfig = KafkaesqueConfigLoader.loadConsumerConfig();
+    final Properties consumerProperties = toConsumerProperties(consumerConfig);
+    consumerProperties.putAll(creationProps);
     final KafkaConsumer<Key, Value> consumer = new KafkaConsumer<>(consumerProperties);
     subscribeConsumerToTopic(consumer, creationInfo.getTopic());
     return consumer;
@@ -165,6 +158,24 @@ public class KafkaesqueConsumer<Key, Value> {
       readMessages.addAll(newMessages);
     }
     return newMessages.size();
+  }
+
+  private Properties toConsumerProperties(KafkaesqueConsumerConfig kConsumerConfig) {
+    final Properties props = new Properties();
+
+    props.put(ConsumerConfig.GROUP_ID_CONFIG, kConsumerConfig.groupId());
+    props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, kConsumerConfig.autoOffsetReset());
+    props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kConsumerConfig.bootstrapServers());
+    props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, kConsumerConfig.enableAutoCommit());
+    props.put(ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG, Math.toIntExact(kConsumerConfig.autoCommitInterval().toMillis()));
+    props.put(ConsumerConfig.CLIENT_ID_CONFIG, kConsumerConfig.clientId());
+    props.put(ConsumerConfig.FETCH_MAX_WAIT_MS_CONFIG, Math.toIntExact(kConsumerConfig.fetchMaxWait().toMillis()));
+    props.put(ConsumerConfig.FETCH_MIN_BYTES_CONFIG, kConsumerConfig.fetchMinSize());
+    props.put(ConsumerConfig.HEARTBEAT_INTERVAL_MS_CONFIG, Math.toIntExact(kConsumerConfig.heartbeatInterval().toMillis()));
+    props.put(ConsumerConfig.ISOLATION_LEVEL_CONFIG, kConsumerConfig.isolationLevel());
+    props.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, kConsumerConfig.maxPollRecords());
+
+    return props;
   }
 
   /**

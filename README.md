@@ -118,7 +118,7 @@ Since the library is published in the GitHub Packages repository, you need to ad
 
 #### Configuration
 
-_Kafkaesque_ also supports internal producer and consumer configuration via environment variables, system properties or a `kafkaesque.properties` configuration file.
+_Kafkaesque_ also supports internal producer and consumer configuration via an `application.properties`, `application.conf`  or `application.json` configuration file.
 The configuration properties follow the same notation as in [spring-kafka](https://docs.spring.io/spring-boot/docs/current/reference/html/application-properties.html#appendix.application-properties.integration) with the prefix being `kafkaesque.*` instead of `spring.kafka.*`, here is an example:
 
 ```properties
@@ -132,11 +132,5 @@ kafkaesque.producer.client-id=example-producer-client-id
 kafkaesque.producer.acks=100
 kafkaesque.producer.value-serializer=io.confluent.kafka.serializers.KafkaAvroSerializer
 ```
-
-Multiple source configuration is also possible and the different properties will be merged in one following the order:
-
-1. `kafkaesque.properties` file in classpath
-2. System properties, e.g: `-Dkafkaesque.consumer.group-id=example-consumer-group`
-3. Environment variables, e.g: `export kafkaesque.consumer.group-id=example-consumer-group`
 
 
