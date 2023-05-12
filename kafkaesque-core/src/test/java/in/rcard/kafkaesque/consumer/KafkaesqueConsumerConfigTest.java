@@ -23,7 +23,7 @@ public class KafkaesqueConsumerConfigTest {
         Properties testProps = new Properties();
         try (InputStream testPropsStream = getClass()
                 .getClassLoader()
-                .getResourceAsStream("application.properties")
+                .getResourceAsStream("reference.conf")
         ) {
             testProps.load(testPropsStream);
         }
