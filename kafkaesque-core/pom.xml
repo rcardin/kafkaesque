@@ -8,7 +8,7 @@
     <parent>
         <groupId>in.rcard</groupId>
         <artifactId>kafkaesque</artifactId>
-        <version>1.0.0-RC1</version>
+        <version>0.0.1</version>
     </parent>
 
     <artifactId>kafkaesque-core</artifactId>
