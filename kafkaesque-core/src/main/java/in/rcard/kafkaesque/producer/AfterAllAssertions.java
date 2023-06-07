@@ -27,7 +27,7 @@ public class AfterAllAssertions<Key, Value> {
    * Asserts that some conditions hold on the whole list of sent message.<br> For example:
    *
    * <pre>
-   *   producer.asserting(records ->
+   *   producer.asserting(records -&gt;
    *     assertThat(records).hasSize(2)
    *   );
    * </pre>
