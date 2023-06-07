@@ -50,6 +50,7 @@ public class KafkaesqueProducerDSL<Key, Value> {
    * Sets the topic to write to. This information is mandatory.
    *
    * @param topic The name of the topic
+   * @return This instance
    */
   public KafkaesqueProducerDSL<Key, Value> toTopic(String topic) {
     this.topic = topic;
@@ -61,6 +62,7 @@ public class KafkaesqueProducerDSL<Key, Value> {
    *
    * @param keySerializer The key serializer
    * @param valueSerializer The value serializer
+   * @return This instance
    */
   public KafkaesqueProducerDSL<Key, Value> withSerializers(
       Serializer<Key> keySerializer, Serializer<Value> valueSerializer) {
@@ -73,6 +75,7 @@ public class KafkaesqueProducerDSL<Key, Value> {
    * Sets the list of messages to write to the target topic. This information is mandatory.
    *
    * @param records The list of messages
+   * @return This instance
    */
   public KafkaesqueProducerDSL<Key, Value> messages(List<Record<Key, Value>> records) {
     this.records = records;
@@ -85,6 +88,7 @@ public class KafkaesqueProducerDSL<Key, Value> {
    *
    * @param interval Time interval
    * @param unit Unit of the time interval
+   * @return This instance
    */
   public KafkaesqueProducerDSL<Key, Value> waitingAtMostForEachAck(long interval, TimeUnit unit) {
     this.waitingAtMostForEachAckInterval = interval;
@@ -98,6 +102,7 @@ public class KafkaesqueProducerDSL<Key, Value> {
    *
    * @param interval Time interval
    * @param unit Unit of the time interval
+   * @return This instance
    */
   public KafkaesqueProducerDSL<Key, Value> waitingForTheConsumerAtMost(
       long interval, TimeUnit unit) {

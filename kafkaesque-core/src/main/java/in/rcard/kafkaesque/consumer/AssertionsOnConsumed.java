@@ -36,6 +36,7 @@ public class AssertionsOnConsumed<Key, Value> {
    * Tests if the number of consumed messages is equal to the given {@code size}.
    *
    * @param size The expected number of messages
+   * @return This instance
    */
   public AssertionsOnConsumed<Key, Value> havingRecordsSize(long size) {
     if (consumerRecords.size() != size) {
@@ -53,6 +54,7 @@ public class AssertionsOnConsumed<Key, Value> {
    * can be used inside {@code headersConsumer}.
    *
    * @param headersConsumer Code testing the desired properties
+   * @return This instance
    */
   public AssertionsOnConsumed<Key, Value> havingHeaders(Consumer<List<Headers>> headersConsumer) {
     headersConsumer.accept(headersList);
@@ -64,6 +66,7 @@ public class AssertionsOnConsumed<Key, Value> {
    * be used inside {@code keysConsumer}.
    *
    * @param keysConsumer Code testing the desired properties
+   * @return This instance
    */
   public AssertionsOnConsumed<Key, Value> havingKeys(Consumer<List<Key>> keysConsumer) {
     keysConsumer.accept(keysList);
@@ -75,6 +78,7 @@ public class AssertionsOnConsumed<Key, Value> {
    * be used inside {@code valuesConsumer}.
    *
    * @param valuesConsumer Code testing the desired properties
+   * @return This instance
    */
   public AssertionsOnConsumed<Key, Value> havingPayloads(Consumer<List<Value>> valuesConsumer) {
     valuesConsumer.accept(valuesList);
@@ -86,6 +90,7 @@ public class AssertionsOnConsumed<Key, Value> {
    * can be used inside {@code recordsConsumer}.
    *
    * @param recordsConsumer Code testing the desired properties
+   * @return This instance
    */
   public AssertionsOnConsumed<Key, Value> havingConsumerRecords(
       Consumer<List<ConsumerRecord<Key, Value>>> recordsConsumer) {
@@ -97,8 +102,10 @@ public class AssertionsOnConsumed<Key, Value> {
    * Verifies if the list of values matches the given conditions.
    *
    * @param matcher Condition to satisfy
+   * @return This instance
    */
-  public AssertionsOnConsumed<Key, Value> assertingThatPayloads(Matcher<? super List<Value>> matcher) {
+  public AssertionsOnConsumed<Key, Value> assertingThatPayloads(
+      Matcher<? super List<Value>> matcher) {
     final boolean matched = matcher.matches(valuesList);
     if (!matched) {
       throw new AssertionError(getMismatchMessage(valuesList, matcher));
@@ -115,7 +122,7 @@ public class AssertionsOnConsumed<Key, Value> {
     }
     return String.format("Expected %s but %s", matcher, mismatchDescription);
   }
-  
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -125,12 +132,12 @@ public class AssertionsOnConsumed<Key, Value> {
       return false;
     }
     AssertionsOnConsumed<?, ?> that = (AssertionsOnConsumed<?, ?>) o;
-    return Objects.equals(consumerRecords, that.consumerRecords) &&
-               Objects.equals(headersList, that.headersList) &&
-               Objects.equals(keysList, that.keysList) &&
-               Objects.equals(valuesList, that.valuesList);
+    return Objects.equals(consumerRecords, that.consumerRecords)
+        && Objects.equals(headersList, that.headersList)
+        && Objects.equals(keysList, that.keysList)
+        && Objects.equals(valuesList, that.valuesList);
   }
-  
+
   @Override
   public int hashCode() {
     return Objects.hash(consumerRecords, headersList, keysList, valuesList);
