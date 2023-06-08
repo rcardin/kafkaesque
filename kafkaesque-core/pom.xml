@@ -19,6 +19,26 @@
         the Kafka broker.
     </description>
 
+    <url>https://github.com/rcardin/kafkaesque</url>
+    <inceptionYear>2020</inceptionYear>
+    <scm>
+        <connection>scm:git:git://github.com/rcardin/kafkaesque.git</connection>
+        <developerConnection>scm:git:ssh://github.com:rcardin/kafkaesque.git</developerConnection>
+        <url>http://github.com/rcardin/kafkaesque/tree/master</url>
+    </scm>
+    <licenses>
+        <license>
+            <name>MIT License</name>
+            <url>http://www.opensource.org/licenses/mit-license.php</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+    <developers>
+        <developer>
+            <name>Riccardo Cardin</name>
+        </developer>
+    </developers>
+
     <dependencies>
         <dependency>
             <groupId>org.apache.kafka</groupId>
