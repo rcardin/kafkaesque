@@ -1,4 +1,5 @@
 ![](https://github.com/rcardin/kafkaesque/workflows/Kafkaesque/badge.svg)
+![Maven Central](https://img.shields.io/maven-central/v/in.rcard/kafkaesque-core)
 [![GitHub Package Registry version](https://img.shields.io/github/v/release/rcardin/kafkaesque)]()
 
 # Kafkaesque
@@ -99,19 +100,9 @@ The _Kafkaesque_ library contains many submodules. The `kafkaesque-core` module 
 <dependency>
   <groupId>in.rcard</groupId>
   <artifactId>kafkaesque-core</artifactId>
-  <version>1.0.0-RC1</version>
+  <version>0.0.1</version>
   <scope>test</scope>
 </dependency>
 ```
 
 In detail, the `kafkaesque-core` module uses the [Awaitility](http://www.awaitility.org/) Java library to deal with the asynchronicity nature of each of the above use cases.
-
-Since the library is published in the GitHub Packages repository, you need to add also the following definition to your `pom.xml`:
-
-```xml
-<repository>
-  <id>github</id>
-  <name>GitHub rcardin Apache Maven Packages</name>
-  <url>https://maven.pkg.github.com/rcardin/kafkaesque</url>
-</repository>
-```
