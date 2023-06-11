@@ -12,7 +12,7 @@ public interface KafkaesqueProducerConfig {
 
     int batchSize();
 
-    String bufferMemory();
+    long bufferMemory();
 
     String compressionType();
 }

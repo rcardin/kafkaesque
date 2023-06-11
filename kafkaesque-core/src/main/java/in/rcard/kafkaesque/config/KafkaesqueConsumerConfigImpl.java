@@ -1,5 +1,7 @@
 package in.rcard.kafkaesque.config;
 
+import com.typesafe.config.Config;
+
 import java.time.Duration;
 
 public class KafkaesqueConsumerConfigImpl implements KafkaesqueConsumerConfig {
@@ -16,148 +18,72 @@ public class KafkaesqueConsumerConfigImpl implements KafkaesqueConsumerConfig {
     private String isolationLevel;
     private int maxPollRecords;
 
-    public KafkaesqueConsumerConfigImpl() {}
-
-    public String getGroupId() {
-        return groupId;
-    }
-
-    public void setGroupId(String groupId) {
-        this.groupId = groupId;
-    }
-
-    public String getBootstrapServers() {
-        return bootstrapServers;
-    }
-
-    public void setBootstrapServers(String bootstrapServers) {
-        this.bootstrapServers = bootstrapServers;
-    }
-
-    public String getAutoOffsetReset() {
-        return autoOffsetReset;
-    }
-
-    public void setAutoOffsetReset(String autoOffsetReset) {
-        this.autoOffsetReset = autoOffsetReset;
-    }
-
-    public boolean isEnableAutoCommit() {
-        return enableAutoCommit;
-    }
-
-    public void setEnableAutoCommit(boolean enableAutoCommit) {
-        this.enableAutoCommit = enableAutoCommit;
-    }
-
-    public Duration getAutoCommitInterval() {
-        return autoCommitInterval;
-    }
-
-    public void setAutoCommitInterval(Duration autoCommitInterval) {
-        this.autoCommitInterval = autoCommitInterval;
-    }
-
-    public String getClientId() {
-        return clientId;
-    }
-
-    public void setClientId(String clientId) {
-        this.clientId = clientId;
-    }
-
-    public Duration getFetchMaxWait() {
-        return fetchMaxWait;
-    }
-
-    public void setFetchMaxWait(Duration fetchMaxWait) {
-        this.fetchMaxWait = fetchMaxWait;
-    }
-
-    public int getFetchMinSize() {
-        return fetchMinSize;
-    }
-
-    public void setFetchMinSize(int fetchMinSize) {
-        this.fetchMinSize = fetchMinSize;
-    }
-
-    public Duration getHeartbeatInterval() {
-        return heartbeatInterval;
-    }
-
-    public void setHeartbeatInterval(Duration heartbeatInterval) {
-        this.heartbeatInterval = heartbeatInterval;
-    }
-
-    public String getIsolationLevel() {
-        return isolationLevel;
-    }
-
-    public void setIsolationLevel(String isolationLevel) {
-        this.isolationLevel = isolationLevel;
-    }
-
-    public int getMaxPollRecords() {
-        return maxPollRecords;
-    }
-
-    public void setMaxPollRecords(int maxPollRecords) {
-        this.maxPollRecords = maxPollRecords;
+    public KafkaesqueConsumerConfigImpl(Config config) {
+        this.groupId = config.getString("group-id");
+        this.autoOffsetReset = config.getString("auto-offset-reset");
+        this.bootstrapServers = config.getString("bootstrap-servers");
+        this.enableAutoCommit = config.getBoolean("enable-auto-commit");
+        this.autoCommitInterval = config.getDuration("auto-commit-interval");
+        this.clientId = config.getString("client-id");
+        this.fetchMaxWait = config.getDuration("fetch-max-wait");
+        this.fetchMinSize = config.getInt("fetch-min-size");
+        this.heartbeatInterval = config.getDuration("heartbeat-interval");
+        this.isolationLevel = config.getString("isolation-level");
+        this.maxPollRecords = config.getInt("max-poll-records");
     }
 
     @Override
     public String groupId() {
-        return getGroupId();
+        return this.groupId;
     }
 
     @Override
     public String autoOffsetReset() {
-        return getAutoOffsetReset();
+        return this.autoOffsetReset;
     }
 
     @Override
     public String bootstrapServers() {
-        return getBootstrapServers();
+        return this.bootstrapServers;
     }
 
     @Override
     public boolean enableAutoCommit() {
-        return isEnableAutoCommit();
+        return this.enableAutoCommit;
     }
 
     @Override
     public Duration autoCommitInterval() {
-        return getAutoCommitInterval();
+        return this.autoCommitInterval;
     }
 
     @Override
     public String clientId() {
-        return getClientId();
+        return this.clientId;
     }
 
     @Override
     public Duration fetchMaxWait() {
-        return getFetchMaxWait();
+        return this.fetchMaxWait;
     }
 
     @Override
     public int fetchMinSize() {
-        return getFetchMinSize();
+        return this.fetchMinSize;
     }
 
     @Override
     public Duration heartbeatInterval() {
-        return getHeartbeatInterval();
+        return this.heartbeatInterval;
     }
 
     @Override
     public String isolationLevel() {
-        return getIsolationLevel();
+        return this.isolationLevel;
     }
 
     @Override
     public int maxPollRecords() {
-        return getMaxPollRecords();
+        return this.maxPollRecords;
     }
 }

@@ -8,11 +8,11 @@ public class KafkaesqueConfigLoader {
 
     public static KafkaesqueConsumerConfig loadConsumerConfig() {
         Config config = ConfigFactory.load();
-        return ConfigBeanFactory.create(config.getConfig("kafkaesque.consumer"), KafkaesqueConsumerConfigImpl.class);
+        return new KafkaesqueConsumerConfigImpl(config.getConfig("kafkaesque.consumer"));
     }
 
     public static KafkaesqueProducerConfig loadProducerConfig() {
         Config config = ConfigFactory.load();
-        return ConfigBeanFactory.create(config.getConfig("kafkaesque.producer"), KafkaesqueProducerConfigImpl.class);
+        return new KafkaesqueProducerConfigImpl(config.getConfig("kafkaesque.producer"));
     }
 }

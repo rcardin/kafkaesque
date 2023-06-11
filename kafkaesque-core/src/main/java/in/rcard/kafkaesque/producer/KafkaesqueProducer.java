@@ -44,14 +44,10 @@ public final class KafkaesqueProducer<Key, Value> {
   }
 
   private KafkaProducer<Key, Value> createKafkaProducer(String brokerUrl) {
-    Map creationProps = Map.of(
-            ProducerConfig.BOOTSTRAP_SERVERS_CONFIG,
-            brokerUrl,
-            ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG,
-            creationInfo.keySerializer.getClass().getName(),
-            ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,
-            creationInfo.valueSerializer.getClass().getName()
-    );
+    Properties creationProps = new Properties();
+    creationProps.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, brokerUrl);
+    creationProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, creationInfo.keySerializer.getClass().getName());
+    creationProps.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, creationInfo.valueSerializer.getClass().getName());
 
     final KafkaesqueProducerConfig producerConfig = KafkaesqueConfigLoader.loadProducerConfig();
     final Properties producerProperties = toProducerProperties(producerConfig);

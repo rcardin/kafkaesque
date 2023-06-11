@@ -60,14 +60,10 @@ public class KafkaesqueConsumer<Key, Value> {
   }
 
   private KafkaConsumer<Key, Value> createKafkaConsumer(String brokersUrl) {
-    Map creationProps = Map.of(
-            ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG,
-            brokersUrl,
-            ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG,
-            creationInfo.getKeyDeserializer().getClass().getName(),
-            ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG,
-            creationInfo.getValueDeserializer().getClass().getName()
-    );
+    Properties creationProps = new Properties();
+    creationProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, brokersUrl);
+    creationProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, creationInfo.getKeyDeserializer().getClass().getName());
+    creationProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, creationInfo.getValueDeserializer().getClass().getName());
 
     final KafkaesqueConsumerConfig consumerConfig = KafkaesqueConfigLoader.loadConsumerConfig();
     final Properties consumerProperties = toConsumerProperties(consumerConfig);

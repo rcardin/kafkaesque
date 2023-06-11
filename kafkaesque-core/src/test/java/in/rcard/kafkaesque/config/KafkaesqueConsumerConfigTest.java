@@ -1,11 +1,9 @@
-package in.rcard.kafkaesque.consumer;
+package in.rcard.kafkaesque.config;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
-import in.rcard.kafkaesque.config.KafkaesqueConfigLoader;
-import in.rcard.kafkaesque.config.KafkaesqueConsumerConfig;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
