@@ -4,7 +4,6 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -12,6 +11,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import in.rcard.kafkaesque.config.KafkaesqueConfigLoader;
 import in.rcard.kafkaesque.config.KafkaesqueConsumerConfig;
+import in.rcard.kafkaesque.config.TypesafeKafkaesqueConfigLoader;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRebalanceListener;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -65,7 +65,10 @@ public class KafkaesqueConsumer<Key, Value> {
     creationProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, creationInfo.getKeyDeserializer().getClass().getName());
     creationProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, creationInfo.getValueDeserializer().getClass().getName());
 
-    final KafkaesqueConsumerConfig consumerConfig = KafkaesqueConfigLoader.loadConsumerConfig();
+    // TODO Move this to the config loader
+    final KafkaesqueConfigLoader kafkaesqueConfigLoader = new TypesafeKafkaesqueConfigLoader();
+
+    final KafkaesqueConsumerConfig consumerConfig = kafkaesqueConfigLoader.loadConsumerConfig();
     final Properties consumerProperties = toConsumerProperties(consumerConfig);
     consumerProperties.putAll(creationProps);
     final KafkaConsumer<Key, Value> consumer = new KafkaConsumer<>(consumerProperties);

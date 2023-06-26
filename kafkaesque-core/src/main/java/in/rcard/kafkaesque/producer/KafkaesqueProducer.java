@@ -1,18 +1,17 @@
 package in.rcard.kafkaesque.producer;
 
+import in.rcard.kafkaesque.config.KafkaesqueConfigLoader;
+import in.rcard.kafkaesque.config.KafkaesqueProducerConfig;
+import in.rcard.kafkaesque.config.TypesafeKafkaesqueConfigLoader;
 import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
-import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
-
-import in.rcard.kafkaesque.config.KafkaesqueConfigLoader;
-import in.rcard.kafkaesque.config.KafkaesqueProducerConfig;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
@@ -49,7 +48,9 @@ public final class KafkaesqueProducer<Key, Value> {
     creationProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, creationInfo.keySerializer.getClass().getName());
     creationProps.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, creationInfo.valueSerializer.getClass().getName());
 
-    final KafkaesqueProducerConfig producerConfig = KafkaesqueConfigLoader.loadProducerConfig();
+    final KafkaesqueConfigLoader kafkaesqueConfigLoader = new TypesafeKafkaesqueConfigLoader();
+
+    final KafkaesqueProducerConfig producerConfig = kafkaesqueConfigLoader.loadProducerConfig();
     final Properties producerProperties = toProducerProperties(producerConfig);
     producerProperties.putAll(creationProps);
     return new KafkaProducer<>(producerProperties);
@@ -102,7 +103,7 @@ public final class KafkaesqueProducer<Key, Value> {
     return promiseOnMetadata;
   }
 
-  public static Properties toProducerProperties(KafkaesqueProducerConfig kProducerConfig) {
+  public Properties toProducerProperties(KafkaesqueProducerConfig kProducerConfig) {
     final Properties props = new Properties();
 
     props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, kProducerConfig.bootstrapServers());
