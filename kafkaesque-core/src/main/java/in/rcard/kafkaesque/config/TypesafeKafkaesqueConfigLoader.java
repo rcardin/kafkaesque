@@ -7,13 +7,15 @@ public class TypesafeKafkaesqueConfigLoader implements KafkaesqueConfigLoader {
 
     @Override
     public KafkaesqueConsumerConfig loadConsumerConfig() {
+        // TODO Add the path to the configuration file as a constructor parameter
         Config config = ConfigFactory.load();
-        return new KafkaesqueConsumerConfigImpl(config.getConfig("kafkaesque.consumer"));
+        return new TypesafeKafkaesqueConsumerConfig(config.getConfig("kafkaesque.consumer"));
     }
 
     @Override
     public KafkaesqueProducerConfig loadProducerConfig() {
+        // TODO Add the path to the configuration file as a constructor parameter
         Config config = ConfigFactory.load();
-        return new KafkaesqueProducerConfigImpl(config.getConfig("kafkaesque.producer"));
+        return new TypesafeKafkaesqueProducerConfig(config.getConfig("kafkaesque.producer"));
     }
 }

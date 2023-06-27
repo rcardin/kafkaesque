@@ -4,21 +4,21 @@ import com.typesafe.config.Config;
 
 import java.time.Duration;
 
-public class KafkaesqueConsumerConfigImpl implements KafkaesqueConsumerConfig {
+public class TypesafeKafkaesqueConsumerConfig implements KafkaesqueConsumerConfig {
 
-    private String groupId;
-    private String autoOffsetReset;
-    private String bootstrapServers;
-    private boolean enableAutoCommit;
-    private Duration autoCommitInterval;
-    private String clientId;
-    private Duration fetchMaxWait;
-    private int fetchMinSize;
-    private Duration heartbeatInterval;
-    private String isolationLevel;
-    private int maxPollRecords;
+    private final String groupId;
+    private final String autoOffsetReset;
+    private final String bootstrapServers;
+    private final boolean enableAutoCommit;
+    private final Duration autoCommitInterval;
+    private final String clientId;
+    private final Duration fetchMaxWait;
+    private final int fetchMinSize;
+    private final Duration heartbeatInterval;
+    private final String isolationLevel;
+    private final int maxPollRecords;
 
-    public KafkaesqueConsumerConfigImpl(Config config) {
+    public TypesafeKafkaesqueConsumerConfig(Config config) {
         this.groupId = config.getString("group-id");
         this.autoOffsetReset = config.getString("auto-offset-reset");
         this.bootstrapServers = config.getString("bootstrap-servers");

@@ -51,7 +51,7 @@ public final class KafkaesqueProducer<Key, Value> {
     final KafkaesqueConfigLoader kafkaesqueConfigLoader = new TypesafeKafkaesqueConfigLoader();
 
     final KafkaesqueProducerConfig producerConfig = kafkaesqueConfigLoader.loadProducerConfig();
-    final Properties producerProperties = toProducerProperties(producerConfig);
+    final Properties producerProperties = producerConfig.toProducerProperties();
     producerProperties.putAll(creationProps);
     return new KafkaProducer<>(producerProperties);
   }
@@ -101,20 +101,6 @@ public final class KafkaesqueProducer<Key, Value> {
           }
         });
     return promiseOnMetadata;
-  }
-
-  public Properties toProducerProperties(KafkaesqueProducerConfig kProducerConfig) {
-    final Properties props = new Properties();
-
-    props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, kProducerConfig.bootstrapServers());
-    props.put(ProducerConfig.CLIENT_ID_CONFIG, kProducerConfig.clientId());
-    props.put(ProducerConfig.RETRIES_CONFIG, kProducerConfig.retries());
-    props.put(ProducerConfig.ACKS_CONFIG, kProducerConfig.acks());
-    props.put(ProducerConfig.BATCH_SIZE_CONFIG, kProducerConfig.batchSize());
-    props.put(ProducerConfig.BUFFER_MEMORY_CONFIG, kProducerConfig.bufferMemory());
-    props.put(ProducerConfig.COMPRESSION_TYPE_CONFIG, kProducerConfig.compressionType());
-
-    return props;
   }
 
   /**

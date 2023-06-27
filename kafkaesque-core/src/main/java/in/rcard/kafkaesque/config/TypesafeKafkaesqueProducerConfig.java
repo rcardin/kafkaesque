@@ -2,16 +2,16 @@ package in.rcard.kafkaesque.config;
 
 import com.typesafe.config.Config;
 
-public class KafkaesqueProducerConfigImpl implements KafkaesqueProducerConfig {
-    private String bootstrapServers;
-    private String clientId;
-    private int retries;
-    private String acks;
-    private int batchSize;
-    private long bufferMemory;
-    private String compressionType;
+public class TypesafeKafkaesqueProducerConfig implements KafkaesqueProducerConfig {
+    private final String bootstrapServers;
+    private final String clientId;
+    private final int retries;
+    private final String acks;
+    private final int batchSize;
+    private final long bufferMemory;
+    private final String compressionType;
 
-    public KafkaesqueProducerConfigImpl(Config config) {
+    public TypesafeKafkaesqueProducerConfig(Config config) {
         this.bootstrapServers = config.getString("bootstrap-servers");
         this.clientId = config.getString("client-id");
         this.retries = config.getInt("retries");
