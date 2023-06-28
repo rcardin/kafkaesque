@@ -1,89 +1,44 @@
 package in.rcard.kafkaesque.config;
 
 import com.typesafe.config.Config;
-
-import java.time.Duration;
+import java.util.Properties;
+import org.apache.kafka.clients.consumer.ConsumerConfig;
 
 public class TypesafeKafkaesqueConsumerConfig implements KafkaesqueConsumerConfig {
 
-    private final String groupId;
-    private final String autoOffsetReset;
-    private final String bootstrapServers;
-    private final boolean enableAutoCommit;
-    private final Duration autoCommitInterval;
-    private final String clientId;
-    private final Duration fetchMaxWait;
-    private final int fetchMinSize;
-    private final Duration heartbeatInterval;
-    private final String isolationLevel;
-    private final int maxPollRecords;
+  private final Config config;
 
-    public TypesafeKafkaesqueConsumerConfig(Config config) {
-        this.groupId = config.getString("group-id");
-        this.autoOffsetReset = config.getString("auto-offset-reset");
-        this.bootstrapServers = config.getString("bootstrap-servers");
-        this.enableAutoCommit = config.getBoolean("enable-auto-commit");
-        this.autoCommitInterval = config.getDuration("auto-commit-interval");
-        this.clientId = config.getString("client-id");
-        this.fetchMaxWait = config.getDuration("fetch-max-wait");
-        this.fetchMinSize = config.getInt("fetch-min-size");
-        this.heartbeatInterval = config.getDuration("heartbeat-interval");
-        this.isolationLevel = config.getString("isolation-level");
-        this.maxPollRecords = config.getInt("max-poll-records");
-    }
+  public TypesafeKafkaesqueConsumerConfig(Config config) {
+    this.config = config;
+  }
 
-    @Override
-    public String groupId() {
-        return this.groupId;
-    }
+  @Override
+  public Properties toProperties() {
+    final Properties props = new Properties();
 
-    @Override
-    public String autoOffsetReset() {
-        return this.autoOffsetReset;
-    }
+    props.put(ConsumerConfig.GROUP_ID_CONFIG, config.getString("group-id"));
+    props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, config.getString("auto-offset-reset"));
 
-    @Override
-    public String bootstrapServers() {
-        return this.bootstrapServers;
-    }
+    // FIXME Do we really want to change the bootstrap servers?
+    props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, config.getString("bootstrap-servers"));
+    props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, config.getBoolean("enable-auto-commit"));
+    // FIXME What happens if the auto-commit-interval is not set?
+    props.put(
+        ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG,
+        Math.toIntExact(config.getDuration("auto-commit-interval").toMillis()));
+    props.put(ConsumerConfig.CLIENT_ID_CONFIG, config.getString("client-id"));
+    // FIXME What happens if the fetch-max-wait is not set?
+    props.put(
+        ConsumerConfig.FETCH_MAX_WAIT_MS_CONFIG,
+        Math.toIntExact(config.getDuration("fetch-max-wait").toMillis()));
+    props.put(ConsumerConfig.FETCH_MIN_BYTES_CONFIG, config.getInt("fetch-min-size"));
+    // FIXME What happens if the heartbeat-interval is not set?
+    props.put(
+        ConsumerConfig.HEARTBEAT_INTERVAL_MS_CONFIG,
+        Math.toIntExact(config.getDuration("heartbeat-interval").toMillis()));
+    props.put(ConsumerConfig.ISOLATION_LEVEL_CONFIG, config.getString("isolation-level"));
+    props.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, config.getInt("max-poll-records"));
 
-    @Override
-    public boolean enableAutoCommit() {
-        return this.enableAutoCommit;
-    }
-
-    @Override
-    public Duration autoCommitInterval() {
-        return this.autoCommitInterval;
-    }
-
-    @Override
-    public String clientId() {
-        return this.clientId;
-    }
-
-    @Override
-    public Duration fetchMaxWait() {
-        return this.fetchMaxWait;
-    }
-
-    @Override
-    public int fetchMinSize() {
-        return this.fetchMinSize;
-    }
-
-    @Override
-    public Duration heartbeatInterval() {
-        return this.heartbeatInterval;
-    }
-
-    @Override
-    public String isolationLevel() {
-        return this.isolationLevel;
-    }
-
-    @Override
-    public int maxPollRecords() {
-        return this.maxPollRecords;
-    }
+    return props;
+  }
 }

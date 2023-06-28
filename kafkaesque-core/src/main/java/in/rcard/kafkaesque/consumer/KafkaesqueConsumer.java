@@ -69,7 +69,7 @@ public class KafkaesqueConsumer<Key, Value> {
     final KafkaesqueConfigLoader kafkaesqueConfigLoader = new TypesafeKafkaesqueConfigLoader();
 
     final KafkaesqueConsumerConfig consumerConfig = kafkaesqueConfigLoader.loadConsumerConfig();
-    final Properties consumerProperties = consumerConfig.toConsumerProperties();
+    final Properties consumerProperties = consumerConfig.toProperties();
     consumerProperties.putAll(creationProps);
     final KafkaConsumer<Key, Value> consumer = new KafkaConsumer<>(consumerProperties);
     subscribeConsumerToTopic(consumer, creationInfo.getTopic());

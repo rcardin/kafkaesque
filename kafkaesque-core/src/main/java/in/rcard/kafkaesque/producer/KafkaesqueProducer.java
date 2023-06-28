@@ -51,7 +51,7 @@ public final class KafkaesqueProducer<Key, Value> {
     final KafkaesqueConfigLoader kafkaesqueConfigLoader = new TypesafeKafkaesqueConfigLoader();
 
     final KafkaesqueProducerConfig producerConfig = kafkaesqueConfigLoader.loadProducerConfig();
-    final Properties producerProperties = producerConfig.toProducerProperties();
+    final Properties producerProperties = producerConfig.toProperties();
     producerProperties.putAll(creationProps);
     return new KafkaProducer<>(producerProperties);
   }

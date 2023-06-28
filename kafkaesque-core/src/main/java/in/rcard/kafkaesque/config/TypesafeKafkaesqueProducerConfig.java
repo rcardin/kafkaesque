@@ -1,58 +1,29 @@
 package in.rcard.kafkaesque.config;
 
 import com.typesafe.config.Config;
+import java.util.Properties;
+import org.apache.kafka.clients.producer.ProducerConfig;
 
 public class TypesafeKafkaesqueProducerConfig implements KafkaesqueProducerConfig {
-    private final String bootstrapServers;
-    private final String clientId;
-    private final int retries;
-    private final String acks;
-    private final int batchSize;
-    private final long bufferMemory;
-    private final String compressionType;
+  private final Config config;
 
-    public TypesafeKafkaesqueProducerConfig(Config config) {
-        this.bootstrapServers = config.getString("bootstrap-servers");
-        this.clientId = config.getString("client-id");
-        this.retries = config.getInt("retries");
-        this.acks = config.getString("acks");
-        this.batchSize = config.getInt("batch-size");
-        this.bufferMemory = config.getLong("buffer-memory");
-        this.compressionType = config.getString("compression-type");
-    }
+  public TypesafeKafkaesqueProducerConfig(Config config) {
+    this.config = config;
+  }
 
-    @Override
-    public String bootstrapServers() {
-        return this.bootstrapServers;
-    }
+  @Override
+  public Properties toProperties() {
+    final Properties props = new Properties();
 
-    @Override
-    public String clientId() {
-        return this.clientId;
-    }
+    // FIXME Do we really want to change the bootstrap servers?
+    props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, config.getString("bootstrap-servers"));
+    props.put(ProducerConfig.CLIENT_ID_CONFIG, config.getString("client-id"));
+    props.put(ProducerConfig.RETRIES_CONFIG, config.getInt("retries"));
+    props.put(ProducerConfig.ACKS_CONFIG, config.getString("acks"));
+    props.put(ProducerConfig.BATCH_SIZE_CONFIG, config.getInt("batch-size"));
+    props.put(ProducerConfig.BUFFER_MEMORY_CONFIG, config.getLong("buffer-memory"));
+    props.put(ProducerConfig.COMPRESSION_TYPE_CONFIG, config.getString("compression-type"));
 
-    @Override
-    public int retries() {
-        return this.retries;
-    }
-
-    @Override
-    public String acks() {
-        return this.acks;
-    }
-
-    @Override
-    public int batchSize() {
-        return this.batchSize;
-    }
-
-    @Override
-    public long bufferMemory() {
-        return this.bufferMemory;
-    }
-
-    @Override
-    public String compressionType() {
-        return this.compressionType;
-    }
+    return props;
+  }
 }
