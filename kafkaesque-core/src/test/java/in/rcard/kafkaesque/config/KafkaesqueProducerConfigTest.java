@@ -2,26 +2,20 @@ package in.rcard.kafkaesque.config;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.Properties;
+import org.apache.kafka.clients.producer.ProducerConfig;
 import org.junit.jupiter.api.Test;
 
 public class KafkaesqueProducerConfigTest {
 
-    @Test
-  public void shouldLoadKafkaesqueProducerConfigFromGivenClasspathProperties() throws IOException {
+  @Test
+  public void shouldLoadKafkaesqueProducerConfigFromGivenClasspathProperties() {
     final KafkaesqueConfigLoader kafkaesqueConfigLoader = new TypesafeKafkaesqueConfigLoader();
-      KafkaesqueProducerConfig kafkaesqueProducerConfig = kafkaesqueConfigLoader.loadProducerConfig();
-    Properties testProps = new Properties();
-    try (InputStream testPropsStream =
-        getClass().getClassLoader().getResourceAsStream("reference.conf")) {
-      testProps.load(testPropsStream);
-    }
+    KafkaesqueProducerConfig kafkaesqueProducerConfig = kafkaesqueConfigLoader.loadProducerConfig();
 
-      assertThat(kafkaesqueProducerConfig.clientId())
-        .isEqualTo(testProps.get("kafkaesque.producer.client-id"));
-      assertThat(kafkaesqueProducerConfig.acks())
-        .isEqualTo(testProps.get("kafkaesque.producer.acks"));
+    final Properties actualProperties = kafkaesqueProducerConfig.toProperties();
+
+    assertThat(actualProperties.get(ProducerConfig.CLIENT_ID_CONFIG)).isEqualTo("kfksq-client-id");
+    assertThat(actualProperties.get(ProducerConfig.ACKS_CONFIG)).isEqualTo("all");
   }
 }
