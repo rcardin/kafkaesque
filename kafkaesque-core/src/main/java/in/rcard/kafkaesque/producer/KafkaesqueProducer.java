@@ -45,8 +45,8 @@ public final class KafkaesqueProducer<Key, Value> {
   private KafkaProducer<Key, Value> createKafkaProducer(String brokerUrl) {
     Properties creationProps = new Properties();
     creationProps.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, brokerUrl);
-    creationProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, creationInfo.keySerializer.getClass().getName());
-    creationProps.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, creationInfo.valueSerializer.getClass().getName());
+    creationProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, creationInfo.getKeySerializer().getClass().getName());
+    creationProps.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, creationInfo.getValueSerializer().getClass().getName());
     creationProps.put(ProducerConfig.ACKS_CONFIG, "all");
 
     final KafkaesqueConfigLoader kafkaesqueConfigLoader = new TypesafeKafkaesqueConfigLoader();
