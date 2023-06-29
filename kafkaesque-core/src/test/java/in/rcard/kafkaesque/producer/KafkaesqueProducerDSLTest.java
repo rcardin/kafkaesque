@@ -17,7 +17,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class KafkaesqueProducerDSLTest {
 
   private static final String TEST_TOPIC = "test-topic";
-  
+
   private static final List<Record<String, String>> MESSAGES =
       Collections.singletonList(Record.of("key", "message"));
 
@@ -27,11 +27,10 @@ class KafkaesqueProducerDSLTest {
   void setUp() {
     dsl = KafkaesqueProducerDSL.newInstance(TEST_TOPIC);
   }
-  
+
   @Test
   void withSerializersShouldReturnTheSameInstanceOfTheBuilder() {
-    assertThat(dsl.withSerializers(new StringSerializer(), new StringSerializer()))
-        .isEqualTo(dsl);
+    assertThat(dsl.withSerializers(new StringSerializer(), new StringSerializer())).isEqualTo(dsl);
   }
 
   @Test
@@ -55,7 +54,7 @@ class KafkaesqueProducerDSLTest {
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessage("The brokerUrl cannot be empty");
   }
-  
+
   @Test
   void andAfterEachShouldThrowAnIAEIfTheFunctionToCreateTheDelegateProducerIsNull() {
     assertThatThrownBy(() -> KafkaesqueProducerDSL.newInstance(null).andAfterEach())
@@ -102,8 +101,7 @@ class KafkaesqueProducerDSLTest {
   void andAfterAllShouldThrowAnIAEIfTheKeySerializerIsNull() {
     assertThatThrownBy(
             () ->
-                dsl
-                    .toTopic("topic")
+                dsl.toTopic("topic")
                     .messages(MESSAGES)
                     .withSerializers(null, new StringSerializer())
                     .andAfterAll())
@@ -115,73 +113,96 @@ class KafkaesqueProducerDSLTest {
   void andAfterAllShouldThrowAnIAEIfTheValueSerializerIsNull() {
     assertThatThrownBy(
             () ->
-                dsl
-                    .toTopic("topic")
+                dsl.toTopic("topic")
                     .messages(MESSAGES)
                     .withSerializers(new StringSerializer(), null)
                     .andAfterAll())
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessage("The serializers cannot be null");
   }
-  
+
+  @Test
+  void andAfterAllShouldThrowAnIAEIfTheGivenConfigurationFilePathDoesNotExist() {
+    assertThatThrownBy(
+            () ->
+                dsl.toTopic("topic")
+                    .messages(MESSAGES)
+                    .withSerializers(new StringSerializer(), new StringSerializer())
+                    .withConfiguration("not-existing-file.properties")
+                    .andAfterAll())
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessage("The configuration file 'not-existing-file.properties' does not exist");
+  }
+
   @Test
   void andAfterEachShouldThrowAnIAEIfTheTopicIsNull() {
     assertThatThrownBy(() -> dsl.andAfterEach())
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessage("The topic name cannot be empty");
   }
-  
+
   @Test
   void andAfterEachShouldThrowAnIAEIfTheTopicIsEmpty() {
     assertThatThrownBy(() -> dsl.toTopic("").andAfterAll())
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessage("The topic name cannot be empty");
   }
-  
+
   @Test
   void andAfterEachShouldThrowAnIAEIfTheTopicIsBlank() {
     assertThatThrownBy(() -> dsl.toTopic("    ").andAfterAll())
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessage("The topic name cannot be empty");
   }
-  
+
   @Test
   void andAfterEachShouldThrowAnIAEIfTheListOfMessagesIsNull() {
     assertThatThrownBy(() -> dsl.toTopic("topic").andAfterAll())
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessage("The list of records to send cannot be empty");
   }
-  
+
   @Test
   void andAfterEachShouldThrowAnIAEIfTheListOfMessagesIsEmpty() {
     assertThatThrownBy(() -> dsl.toTopic("topic").messages(Collections.emptyList()).andAfterAll())
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessage("The list of records to send cannot be empty");
   }
-  
+
   @Test
   void andAfterEachShouldThrowAnIAEIfTheKeySerializerIsNull() {
     assertThatThrownBy(
-        () ->
-            dsl
-                .toTopic("topic")
-                .messages(MESSAGES)
-                .withSerializers(null, new StringSerializer())
-                .andAfterAll())
+            () ->
+                dsl.toTopic("topic")
+                    .messages(MESSAGES)
+                    .withSerializers(null, new StringSerializer())
+                    .andAfterAll())
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessage("The serializers cannot be null");
   }
-  
+
   @Test
   void andAfterEachShouldThrowAnIAEIfTheValueSerializerIsNull() {
     assertThatThrownBy(
-        () ->
-            dsl
-                .toTopic("topic")
-                .messages(MESSAGES)
-                .withSerializers(new StringSerializer(), null)
-                .andAfterAll())
+            () ->
+                dsl.toTopic("topic")
+                    .messages(MESSAGES)
+                    .withSerializers(new StringSerializer(), null)
+                    .andAfterAll())
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessage("The serializers cannot be null");
+  }
+
+  @Test
+  void andAfterEachShouldThrowAnIAEIfTheGivenConfigurationFilePathDoesNotExist() {
+    assertThatThrownBy(
+            () ->
+                dsl.toTopic("topic")
+                    .messages(MESSAGES)
+                    .withSerializers(new StringSerializer(), new StringSerializer())
+                    .withConfiguration("not-existing-file.properties")
+                    .andAfterEach())
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessage("The configuration file 'not-existing-file.properties' does not exist");
   }
 }

@@ -1,8 +1,5 @@
 package in.rcard.kafkaesque.producer;
 
-import in.rcard.kafkaesque.config.KafkaesqueConfigLoader;
-import in.rcard.kafkaesque.config.KafkaesqueProducerConfig;
-import in.rcard.kafkaesque.config.TypesafeKafkaesqueConfigLoader;
 import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
@@ -45,16 +42,16 @@ public final class KafkaesqueProducer<Key, Value> {
   private KafkaProducer<Key, Value> createKafkaProducer(String brokerUrl) {
     Properties creationProps = new Properties();
     creationProps.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, brokerUrl);
-    creationProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, creationInfo.getKeySerializer().getClass().getName());
-    creationProps.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, creationInfo.getValueSerializer().getClass().getName());
+    creationProps.put(
+        ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG,
+        creationInfo.getKeySerializer().getClass().getName());
+    creationProps.put(
+        ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,
+        creationInfo.getValueSerializer().getClass().getName());
     creationProps.put(ProducerConfig.ACKS_CONFIG, "all");
 
-    final KafkaesqueConfigLoader kafkaesqueConfigLoader = new TypesafeKafkaesqueConfigLoader();
-
-    final KafkaesqueProducerConfig producerConfig = kafkaesqueConfigLoader.loadProducerConfig();
-    final Properties producerProperties = producerConfig.toProperties();
-    producerProperties.putAll(creationProps);
-    return new KafkaProducer<>(producerProperties);
+    creationProps.putAll(creationInfo.getProducerProperties());
+    return new KafkaProducer<>(creationProps);
   }
 
   ProducerRecord<Key, Value> sendRecord(Record<Key, Value> record) {
@@ -161,17 +158,23 @@ public final class KafkaesqueProducer<Key, Value> {
       return "Record{" + "key=" + key + ", value=" + value + '}';
     }
   }
-  
+
   static class DelegateCreationInfo<Key, Value> {
     private final String topic;
     private final Serializer<Key> keySerializer;
     private final Serializer<Value> valueSerializer;
 
+    private final Properties producerProperties;
+
     public DelegateCreationInfo(
-        String topic, Serializer<Key> keySerializer, Serializer<Value> valueSerializer) {
+        String topic,
+        Serializer<Key> keySerializer,
+        Serializer<Value> valueSerializer,
+        Properties producerProperties) {
       this.topic = topic;
       this.keySerializer = keySerializer;
       this.valueSerializer = valueSerializer;
+      this.producerProperties = producerProperties;
     }
 
     public String getTopic() {
@@ -184,6 +187,10 @@ public final class KafkaesqueProducer<Key, Value> {
 
     public Serializer<Value> getValueSerializer() {
       return valueSerializer;
+    }
+
+    public Properties getProducerProperties() {
+      return producerProperties;
     }
   }
 }

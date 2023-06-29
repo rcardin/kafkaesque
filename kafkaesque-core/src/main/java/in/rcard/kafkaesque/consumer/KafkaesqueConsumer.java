@@ -72,7 +72,7 @@ public class KafkaesqueConsumer<Key, Value> {
             creationInfo.getValueDeserializer().getClass());
 
     // TODO Move this to the config loader
-    final KafkaesqueConfigLoader kafkaesqueConfigLoader = new TypesafeKafkaesqueConfigLoader();
+    final KafkaesqueConfigLoader kafkaesqueConfigLoader = new TypesafeKafkaesqueConfigLoader(null /* TODO */);
 
     final KafkaesqueConsumerConfig consumerConfig = kafkaesqueConfigLoader.loadConsumerConfig();
     final Properties consumerProperties = consumerConfig.toProperties();

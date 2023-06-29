@@ -10,7 +10,7 @@ public class KafkaesqueProducerConfigTest {
 
   @Test
   public void shouldLoadKafkaesqueProducerConfigFromGivenClasspathProperties() {
-    final KafkaesqueConfigLoader kafkaesqueConfigLoader = new TypesafeKafkaesqueConfigLoader();
+    final KafkaesqueConfigLoader kafkaesqueConfigLoader = new TypesafeKafkaesqueConfigLoader("reference.conf");
     KafkaesqueProducerConfig kafkaesqueProducerConfig = kafkaesqueConfigLoader.loadProducerConfig();
 
     final Properties actualProperties = kafkaesqueProducerConfig.toProperties();

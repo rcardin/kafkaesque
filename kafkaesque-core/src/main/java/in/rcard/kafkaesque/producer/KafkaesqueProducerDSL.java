@@ -1,9 +1,13 @@
 package in.rcard.kafkaesque.producer;
 
+import in.rcard.kafkaesque.config.TypesafeKafkaesqueConfigLoader;
 import in.rcard.kafkaesque.producer.KafkaesqueProducer.DelegateCreationInfo;
 import in.rcard.kafkaesque.producer.KafkaesqueProducer.Record;
+
+import java.io.File;
 import java.time.Duration;
 import java.util.List;
+import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 import org.apache.kafka.common.serialization.Serializer;
 
@@ -30,6 +34,7 @@ public class KafkaesqueProducerDSL<Key, Value> {
   private TimeUnit waitingAtMostForEachAckTimeUnit = TimeUnit.MILLISECONDS;
   private long waitingForTheConsumerAtMostInterval = 500L;
   private TimeUnit waitingForTheConsumerAtMostTimeUnit = TimeUnit.MILLISECONDS;
+  private String configurationFilePath;
 
   private KafkaesqueProducerDSL(String brokerUrl) {
     validateBrokerUrl(brokerUrl);
@@ -106,9 +111,20 @@ public class KafkaesqueProducerDSL<Key, Value> {
     return this;
   }
 
+  /**
+   * Sets the path of the file containing additional producer configurations. The path is rooted at
+   * the {@code /src/test/resources} directory.
+   *
+   * @param path Path of the file containing additional producer configurations
+   */
+  public KafkaesqueProducerDSL<Key, Value> withConfiguration(String path) {
+    this.configurationFilePath = path;
+    return this;
+  }
+
   public AfterAllAssertions<Key, Value> andAfterAll() {
     final KafkaesqueProducer<Key, Value> producer = buildKafkaesqueProducer();
-    return new AfterAllAssertions<Key, Value>(
+    return new AfterAllAssertions<>(
         producer,
         records,
         Duration.of(
@@ -117,7 +133,7 @@ public class KafkaesqueProducerDSL<Key, Value> {
 
   public AfterEachAssertions<Key, Value> andAfterEach() {
     final KafkaesqueProducer<Key, Value> producer = buildKafkaesqueProducer();
-    return new AfterEachAssertions<Key, Value>(
+    return new AfterEachAssertions<>(
         producer,
         records,
         Duration.of(
@@ -133,7 +149,8 @@ public class KafkaesqueProducerDSL<Key, Value> {
   private KafkaesqueProducer<Key, Value> buildKafkaesqueProducer() {
     validateInputs();
     final DelegateCreationInfo<Key, Value> creationInfo =
-        new DelegateCreationInfo<>(topic, keySerializer, valueSerializer);
+        new DelegateCreationInfo<>(
+            topic, keySerializer, valueSerializer, buildConfigurationProperties());
     return new KafkaesqueProducer<>(
         brokerUrl,
         Duration.of(
@@ -142,10 +159,20 @@ public class KafkaesqueProducerDSL<Key, Value> {
         creationInfo);
   }
 
+  private Properties buildConfigurationProperties() {
+    if (configurationFilePath != null) {
+      return new TypesafeKafkaesqueConfigLoader(configurationFilePath)
+          .loadProducerConfig()
+          .toProperties();
+    }
+    return new Properties();
+  }
+
   private void validateInputs() {
     validateTopic();
     validateRecords();
     validateSerializers();
+    validateConfigurationFilePath();
   }
 
   private void validateTopic() {
@@ -165,5 +192,14 @@ public class KafkaesqueProducerDSL<Key, Value> {
       throw new IllegalArgumentException("The serializers cannot be null");
     }
   }
-  
+
+  private void validateConfigurationFilePath() {
+    if (configurationFilePath != null) {
+      final File file = new File("src/test/resources" + configurationFilePath);
+      if (!file.exists()) {
+        throw new IllegalArgumentException(
+            String.format("The configuration file '%s' does not exist", configurationFilePath));
+      }
+    }
+  }
 }
