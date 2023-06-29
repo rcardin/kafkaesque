@@ -61,9 +61,15 @@ public class KafkaesqueConsumer<Key, Value> {
 
   private KafkaConsumer<Key, Value> createKafkaConsumer(String brokersUrl) {
     Properties creationProps = new Properties();
+    creationProps.put(ConsumerConfig.GROUP_ID_CONFIG, "kafkaesque-consumer");
+    creationProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
     creationProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, brokersUrl);
-    creationProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, creationInfo.getKeyDeserializer().getClass().getName());
-    creationProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, creationInfo.getValueDeserializer().getClass().getName());
+    creationProps.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "true");
+    creationProps.put(
+            ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, creationInfo.getKeyDeserializer().getClass());
+    creationProps.put(
+            ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG,
+            creationInfo.getValueDeserializer().getClass());
 
     // TODO Move this to the config loader
     final KafkaesqueConfigLoader kafkaesqueConfigLoader = new TypesafeKafkaesqueConfigLoader();
