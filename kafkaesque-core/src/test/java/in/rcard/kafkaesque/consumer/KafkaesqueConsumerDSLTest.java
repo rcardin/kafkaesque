@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.util.concurrent.TimeUnit;
 import org.apache.kafka.common.serialization.StringDeserializer;
+import org.apache.kafka.common.serialization.StringSerializer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -38,8 +39,12 @@ class KafkaesqueConsumerDSLTest {
 
   @Test
   void waitingEmptyPollsShouldReturnTheSameInstanceOfTheBuilder() {
-    assertThat(builder.waitingEmptyPolls(2, 50L, TimeUnit.MILLISECONDS))
-        .isEqualTo(builder);
+    assertThat(builder.waitingEmptyPolls(2, 50L, TimeUnit.MILLISECONDS)).isEqualTo(builder);
+  }
+
+  @Test
+  void withConfigurationShouldReturnTheSameInstanceOfTheBuilder() {
+    assertThat(builder.withConfiguration("value")).isEqualTo(builder);
   }
 
   @Test
@@ -80,5 +85,18 @@ class KafkaesqueConsumerDSLTest {
                     .expectingConsumed())
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessage("The deserializers cannot be null");
+  }
+
+  @Test
+  void expectingConsumedShouldThrowAnIAEIfTheGivenConfigurationFilePathDoesNotExist() {
+    assertThatThrownBy(
+            () ->
+                builder
+                    .fromTopic("topic")
+                    .withDeserializers(new StringDeserializer(), new StringDeserializer())
+                    .withConfiguration("not-existing-file.properties")
+                    .expectingConsumed())
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessage("The configuration file 'not-existing-file.properties' does not exist");
   }
 }
