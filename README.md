@@ -141,4 +141,51 @@ The configurations must be prefixed with `kafkaesque.producer` for producers, in
 * `buffer-memory`
 * `compression-type`
 
+You can pass the path to the file using the `withConfiguration` method available both for consumers and producers. Here is an example:
+
+```java
+Kafkaesque
+  .at("broker:port")
+  .<Key, Value>produce()
+  .toTopic("topic-name")
+  .withDeserializers(keyDeserializer, valueDeserializer)
+  .withConfiguration("path-to-the-file.conf")
+  .messages( /* Some list of messages */)
+  .waitingAtMostForEachAck(100, MILLISECONDS) // Waiting time for each ack from the broker
+  .waitingForTheConsumerAtMost(10, SECONDS) // Waiting time for the consumer to read one / all the messages
+  .andAfterAll()
+  .asserting(messages -> {
+    // Assertions on the consumer process after the sending of all the messages
+  });
+```
+
+The path is relative to the `/src/test/resources` folder.
+
+An example of configuration file could be the following. The file contains the configurations for both producers and consumers:
+
+```hocon
+kafkaesque {
+  consumer {
+    group-id: "kfksq-test-consumer"
+    client-id: "kfksq-client-id"
+    auto-commit-interval: 5000
+    auto-offset-reset: "earliest"
+    enable-auto-commit: false
+    fetch-max-wait: 500
+    fetch-min-size: 1
+    heartbeat-interval: 3000
+    isolation-level: "read_uncommitted"
+    max-poll-records: 500
+  }
+
+  producer {
+    acks: "all"
+    batch-size: 16384
+    buffer-memory: 33554432
+    client-id: "kfksq-client-id"
+    compression-type: "none"
+    retries: 2147483647
+  }
+}
+```
 
