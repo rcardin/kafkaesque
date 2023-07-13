@@ -116,21 +116,29 @@ Since the library is published in the GitHub Packages repository, you need to ad
 </repository>
 ```
 
-#### Configuration
+## Configuration
 
-_Kafkaesque_ also supports internal producer and consumer configuration via an `application.properties`, `application.conf`  or `application.json` configuration file.
-The configuration properties follow the same notation as in [spring-kafka](https://docs.spring.io/spring-boot/docs/current/reference/html/application-properties.html#appendix.application-properties.integration) with the prefix being `kafkaesque.*` instead of `spring.kafka.*`, here is an example:
+_Kafkaesque_ also supports internal producers and consumers configuration via an external configuration file. Kafkaesque can read multiple file formats. The available ones are the [HOCON](https://github.com/lightbend/config/blob/main/HOCON.md) file format, JSON format, and Java properties format.
 
-```properties
-kafkaesque.consumer.group-id=example-consumer-group
-kafkaesque.consumer.client-id=example-client-id
-kafkaesque.consumer.auto-offset-reset=earliest
-kafkaesque.consumer.enable-auto-commit=false
-kafkaesque.consumer.value-deserializer=io.confluent.kafka.serializers.KafkaAvroDeserializer
+The configurations must be prefixed with `kafkaesque.consumer` for consumers. The available configuration are:
 
-kafkaesque.producer.client-id=example-producer-client-id
-kafkaesque.producer.acks=100
-kafkaesque.producer.value-serializer=io.confluent.kafka.serializers.KafkaAvroSerializer
-```
+* `group-id`
+* `auto-offset-reset`
+* `enable-auto-commit`
+* `auto-commit-interval`
+* `client-id`
+* `fetch-max-wait`
+* `fetch-min-size`
+* `isolation-level`
+* `max-poll-records`
+
+The configurations must be prefixed with `kafkaesque.producer` for producers, instead. The available configuration are:
+
+* `client-id`
+* `retries`
+* `acks`
+* `batch-size`
+* `buffer-memory`
+* `compression-type`
 
 
