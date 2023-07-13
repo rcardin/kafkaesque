@@ -9,8 +9,33 @@ import org.junit.jupiter.api.Test;
 public class KafkaesqueProducerConfigTest {
 
   @Test
-  public void shouldLoadKafkaesqueProducerConfigFromGivenClasspathProperties() {
-    final KafkaesqueConfigLoader kafkaesqueConfigLoader = new TypesafeKafkaesqueConfigLoader("reference.conf");
+  public void shouldLoadKafkaesqueProducerConfigInPropertiesFormatFromGivenClasspath() {
+    final KafkaesqueConfigLoader kafkaesqueConfigLoader =
+        new TypesafeKafkaesqueConfigLoader("reference.properties");
+    KafkaesqueProducerConfig kafkaesqueProducerConfig = kafkaesqueConfigLoader.loadProducerConfig();
+
+    final Properties actualProperties = kafkaesqueProducerConfig.toProperties();
+
+    assertThat(actualProperties.get(ProducerConfig.CLIENT_ID_CONFIG)).isEqualTo("kfksq-client-id");
+    assertThat(actualProperties.get(ProducerConfig.ACKS_CONFIG)).isEqualTo("all");
+  }
+
+  @Test
+  public void shouldLoadKafkaesqueProducerConfigInHoconFormatFromGivenClasspath() {
+    final KafkaesqueConfigLoader kafkaesqueConfigLoader =
+        new TypesafeKafkaesqueConfigLoader("reference.conf");
+    KafkaesqueProducerConfig kafkaesqueProducerConfig = kafkaesqueConfigLoader.loadProducerConfig();
+
+    final Properties actualProperties = kafkaesqueProducerConfig.toProperties();
+
+    assertThat(actualProperties.get(ProducerConfig.CLIENT_ID_CONFIG)).isEqualTo("kfksq-client-id");
+    assertThat(actualProperties.get(ProducerConfig.ACKS_CONFIG)).isEqualTo("all");
+  }
+
+  @Test
+  public void shouldLoadKafkaesqueProducerConfigInJsonFormatFromGivenClasspath() {
+    final KafkaesqueConfigLoader kafkaesqueConfigLoader =
+            new TypesafeKafkaesqueConfigLoader("reference.json");
     KafkaesqueProducerConfig kafkaesqueProducerConfig = kafkaesqueConfigLoader.loadProducerConfig();
 
     final Properties actualProperties = kafkaesqueProducerConfig.toProperties();
