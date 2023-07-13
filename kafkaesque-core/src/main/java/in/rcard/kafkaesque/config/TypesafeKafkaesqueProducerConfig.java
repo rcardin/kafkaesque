@@ -15,8 +15,6 @@ public class TypesafeKafkaesqueProducerConfig implements KafkaesqueProducerConfi
   public Properties toProperties() {
     final Properties props = new Properties();
 
-    // FIXME Do we really want to change the bootstrap servers?
-    props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, config.getString("bootstrap-servers"));
     props.put(ProducerConfig.CLIENT_ID_CONFIG, config.getString("client-id"));
     props.put(ProducerConfig.RETRIES_CONFIG, config.getInt("retries"));
     props.put(ProducerConfig.ACKS_CONFIG, config.getString("acks"));
