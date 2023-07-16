@@ -7,6 +7,12 @@ import org.apache.kafka.clients.producer.ProducerConfig;
 public class TypesafeKafkaesqueProducerConfig implements KafkaesqueProducerConfig {
   private final Config config;
 
+  /**
+   * Represents a Kafka producer config provider, implementation should provide
+   * a mapping between loadable configuration and Kafka's producer configuration API
+   *
+   * @see <a href="https://kafka.apache.org/documentation/#producerconfigs">Apache Kafka Producer Config API</a>
+   */
   public TypesafeKafkaesqueProducerConfig(Config config) {
     this.config = config;
   }
