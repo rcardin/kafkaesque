@@ -6,7 +6,7 @@ import java.util.Properties;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.junit.jupiter.api.Test;
 
-public class KafkaesqueProducerConfigTest {
+public class TypesafeKafkaesqueProducerConfigTest {
 
   @Test
   public void shouldLoadKafkaesqueProducerConfigInPropertiesFormatFromGivenClasspath() {

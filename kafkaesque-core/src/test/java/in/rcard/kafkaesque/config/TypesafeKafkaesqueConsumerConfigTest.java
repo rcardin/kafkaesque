@@ -6,7 +6,7 @@ import java.util.Properties;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.junit.jupiter.api.Test;
 
-public class KafkaesqueConsumerConfigTest {
+public class TypesafeKafkaesqueConsumerConfigTest {
 
   @Test
   public void shouldLoadKafkaesqueConsumerConfigInPropertiesFormatFromGivenClasspath() {
@@ -45,5 +45,16 @@ public class KafkaesqueConsumerConfigTest {
     assertThat(actualProperties.get(ConsumerConfig.GROUP_ID_CONFIG))
             .isEqualTo("kfksq-test-consumer");
     assertThat(actualProperties.get(ConsumerConfig.CLIENT_ID_CONFIG)).isEqualTo("kfksq-client-id");
+  }
+
+  @Test
+  void shouldNotLoadAbsentConsumerProperties() {
+    final KafkaesqueConfigLoader kafkaesqueConfigLoader =
+            new TypesafeKafkaesqueConfigLoader("empty.properties");
+    KafkaesqueConsumerConfig kafkaesqueConsumerConfig = kafkaesqueConfigLoader.loadConsumerConfig();
+
+    final Properties actualProperties = kafkaesqueConsumerConfig.toProperties();
+
+    assertThat(actualProperties.isEmpty()).isTrue();
   }
 }
