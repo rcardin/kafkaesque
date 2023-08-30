@@ -38,18 +38,23 @@ public class TypesafeKafkaesqueConsumerConfig implements KafkaesqueConsumerConfi
         props,
         ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG,
         () -> Math.toIntExact(config.getDuration("auto-commit-interval").toMillis()));
-    props.put(ConsumerConfig.CLIENT_ID_CONFIG, config.getString("client-id"));
+    configureIfPresent(props, ConsumerConfig.CLIENT_ID_CONFIG, () -> config.getString("client-id"));
     // FIXME What happens if the fetch-max-wait is not set?
-    props.put(
+    configureIfPresent(
+        props,
         ConsumerConfig.FETCH_MAX_WAIT_MS_CONFIG,
-        Math.toIntExact(config.getDuration("fetch-max-wait").toMillis()));
-    props.put(ConsumerConfig.FETCH_MIN_BYTES_CONFIG, config.getInt("fetch-min-size"));
+        () -> Math.toIntExact(config.getDuration("fetch-max-wait").toMillis()));
+    configureIfPresent(
+        props, ConsumerConfig.FETCH_MIN_BYTES_CONFIG, () -> config.getInt("fetch-min-size"));
     // FIXME What happens if the heartbeat-interval is not set?
-    props.put(
+    configureIfPresent(
+        props,
         ConsumerConfig.HEARTBEAT_INTERVAL_MS_CONFIG,
-        Math.toIntExact(config.getDuration("heartbeat-interval").toMillis()));
-    props.put(ConsumerConfig.ISOLATION_LEVEL_CONFIG, config.getString("isolation-level"));
-    props.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, config.getInt("max-poll-records"));
+        () -> Math.toIntExact(config.getDuration("heartbeat-interval").toMillis()));
+    configureIfPresent(
+        props, ConsumerConfig.ISOLATION_LEVEL_CONFIG, () -> config.getString("isolation-level"));
+    configureIfPresent(
+        props, ConsumerConfig.MAX_POLL_RECORDS_CONFIG, () -> config.getInt("max-poll-records"));
 
     return props;
   }
