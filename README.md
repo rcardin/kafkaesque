@@ -1,4 +1,6 @@
+![Java](https://img.shields.io/badge/java-11-%23ED8B00.svg?logo=openjdk)
 ![](https://github.com/rcardin/kafkaesque/workflows/Kafkaesque/badge.svg)
+![Maven Central](https://img.shields.io/maven-central/v/in.rcard/kafkaesque-core)
 [![GitHub Package Registry version](https://img.shields.io/github/v/release/rcardin/kafkaesque)]()
 
 # Kafkaesque
@@ -99,7 +101,7 @@ The _Kafkaesque_ library contains many submodules. The `kafkaesque-core` module 
 <dependency>
   <groupId>in.rcard</groupId>
   <artifactId>kafkaesque-core</artifactId>
-  <version>1.0.0-RC1</version>
+  <version>0.0.1</version>
   <scope>test</scope>
 </dependency>
 ```
