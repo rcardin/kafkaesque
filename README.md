@@ -108,16 +108,6 @@ The _Kafkaesque_ library contains many submodules. The `kafkaesque-core` module 
 
 In detail, the `kafkaesque-core` module uses the [Awaitility](http://www.awaitility.org/) Java library to deal with the asynchronicity nature of each of the above use cases.
 
-Since the library is published in the GitHub Packages repository, you need to add also the following definition to your `pom.xml`:
-
-```xml
-<repository>
-  <id>github</id>
-  <name>GitHub rcardin Apache Maven Packages</name>
-  <url>https://maven.pkg.github.com/rcardin/kafkaesque</url>
-</repository>
-```
-
 ## Configuration
 
 _Kafkaesque_ also supports internal producers and consumers configuration via an external configuration file. Kafkaesque can read multiple file formats. The available ones are the [HOCON](https://github.com/lightbend/config/blob/main/HOCON.md) file format, JSON format, and Java properties format.
