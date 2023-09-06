@@ -35,12 +35,23 @@ public class TypesafeKafkaesqueProducerConfigTest {
   @Test
   public void shouldLoadKafkaesqueProducerConfigInJsonFormatFromGivenClasspath() {
     final KafkaesqueConfigLoader kafkaesqueConfigLoader =
-            new TypesafeKafkaesqueConfigLoader("reference.json");
+        new TypesafeKafkaesqueConfigLoader("reference.json");
     KafkaesqueProducerConfig kafkaesqueProducerConfig = kafkaesqueConfigLoader.loadProducerConfig();
 
     final Properties actualProperties = kafkaesqueProducerConfig.toProperties();
 
     assertThat(actualProperties.get(ProducerConfig.CLIENT_ID_CONFIG)).isEqualTo("kfksq-client-id");
     assertThat(actualProperties.get(ProducerConfig.ACKS_CONFIG)).isEqualTo("all");
+  }
+
+  @Test
+  void shouldNotLoadAbsentConsumerProperties() {
+    final KafkaesqueConfigLoader kafkaesqueConfigLoader =
+        new TypesafeKafkaesqueConfigLoader("empty.properties");
+    KafkaesqueProducerConfig kafkaesqueProducerConfig = kafkaesqueConfigLoader.loadProducerConfig();
+
+    final Properties actualProperties = kafkaesqueProducerConfig.toProperties();
+
+    assertThat(actualProperties.isEmpty()).isTrue();
   }
 }
