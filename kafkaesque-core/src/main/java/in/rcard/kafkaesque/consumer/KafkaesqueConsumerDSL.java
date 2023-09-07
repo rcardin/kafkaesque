@@ -34,7 +34,7 @@ public class KafkaesqueConsumerDSL<Key, Value> {
   private TimeUnit emptyPollsTimeUnit = TimeUnit.MILLISECONDS;
 
   private String configurationFilePath;
-
+  
   private KafkaesqueConsumerDSL(String brokerUrl) {
     this.brokerUrl = brokerUrl;
   }
@@ -120,6 +120,7 @@ public class KafkaesqueConsumerDSL<Key, Value> {
     final DelegateCreationInfo<Key, Value> creationInfo =
         new DelegateCreationInfo<>(
             topic, keyDeserializer, valueDeserializer, buildConfigurationProperties());
+
     final KafkaesqueConsumer<Key, Value> consumer =
         new KafkaesqueConsumer<>(
             brokerUrl,

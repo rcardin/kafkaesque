@@ -32,16 +32,27 @@ public class AssertionsOnConsumedDelegate<Key, Value> {
   public void andCloseConsumer() {
     consumer.close();
   }
-  
+
   /**
+   * Tests if the number of consumed messages is equal to the given {@code size}.
+   *
+   * @param size The expected number of messages
+   * @return This instance
+   *
    * @see AssertionsOnConsumed#havingRecordsSize(long)
    */
   public AssertionsOnConsumedDelegate<Key, Value> havingRecordsSize(long size) {
     results.havingRecordsSize(size);
     return this;
   }
-  
+
   /**
+   * Evaluates the list of headers to satisfy the given properties. Any kind of testing framework
+   * can be used inside {@code headersConsumer}.
+   *
+   * @param headersConsumer Code testing the desired properties
+   * @return This instance
+   *
    * @see AssertionsOnConsumed#havingHeaders(Consumer)
    */
   public AssertionsOnConsumedDelegate<Key, Value> havingHeaders(
@@ -49,17 +60,26 @@ public class AssertionsOnConsumedDelegate<Key, Value> {
     results.havingHeaders(headersConsumer);
     return this;
   }
-  
+
   /**
+   * Evaluates the list of keys to satisfy the given properties. Any kind of testing framework can
+   * be used inside {@code keysConsumer}.
+   * @param keysConsumer Code testing the desired properties
+   * @return This instance
+   *
    * @see AssertionsOnConsumed#havingKeys(Consumer)
    */
-  public AssertionsOnConsumedDelegate<Key, Value> havingKeys(
-      Consumer<List<Key>> keysConsumer) {
+  public AssertionsOnConsumedDelegate<Key, Value> havingKeys(Consumer<List<Key>> keysConsumer) {
     results.havingKeys(keysConsumer);
     return this;
   }
-  
+
   /**
+   * Evaluates the list of values to satisfy the given properties. Any kind of testing framework can
+   * be used inside {@code valuesConsumer}.
+   * @param valuesConsumer Code testing the desired properties
+   * @return This instance
+   *
    * @see AssertionsOnConsumed#havingPayloads(Consumer)
    */
   public AssertionsOnConsumedDelegate<Key, Value> havingPayloads(
@@ -67,8 +87,14 @@ public class AssertionsOnConsumedDelegate<Key, Value> {
     results.havingPayloads(valuesConsumer);
     return this;
   }
-  
+
   /**
+   * Evaluates the list of records to satisfy the given properties. Any kind of testing framework
+   * can be used inside {@code recordsConsumer}.
+   *
+   * @param recordsConsumer Code testing the desired properties
+   * @return This instance
+   *
    * @see AssertionsOnConsumed#havingConsumerRecords(Consumer)
    */
   public AssertionsOnConsumedDelegate<Key, Value> havingConsumerRecords(
@@ -76,8 +102,12 @@ public class AssertionsOnConsumedDelegate<Key, Value> {
     results.havingConsumerRecords(recordsConsumer);
     return this;
   }
-  
+
   /**
+   * Verifies if the list of values matches the given conditions.
+   * @param matcher Condition to satisfy
+   * @return This instance
+   *
    * @see AssertionsOnConsumed#assertingThatPayloads(Matcher)
    */
   public AssertionsOnConsumedDelegate<Key, Value> assertingThatPayloads(
