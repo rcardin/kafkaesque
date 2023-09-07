@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Properties;
-import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -57,17 +56,19 @@ public class KafkaesqueConsumer<Key, Value> {
   }
 
   private KafkaConsumer<Key, Value> createKafkaConsumer(String brokersUrl) {
-    final Properties props = new Properties();
-    props.put(ConsumerConfig.GROUP_ID_CONFIG, "kafkaesque-consumer");
-    props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
-    props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, brokersUrl);
-    props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "true");
-    props.put(
+    Properties creationProps = new Properties();
+    creationProps.put(ConsumerConfig.GROUP_ID_CONFIG, "kafkaesque-consumer");
+    creationProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+    creationProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, brokersUrl);
+    creationProps.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "true");
+    creationProps.put(
         ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, creationInfo.getKeyDeserializer().getClass());
-    props.put(
+    creationProps.put(
         ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG,
         creationInfo.getValueDeserializer().getClass());
-    final KafkaConsumer<Key, Value> consumer = new KafkaConsumer<>(props);
+
+    creationProps.putAll(creationInfo.getConsumerProperties());
+    final KafkaConsumer<Key, Value> consumer = new KafkaConsumer<>(creationProps);
     subscribeConsumerToTopic(consumer, creationInfo.getTopic());
     return consumer;
   }
@@ -83,7 +84,7 @@ public class KafkaesqueConsumer<Key, Value> {
           @Override
           public void onPartitionsAssigned(Collection<TopicPartition> partitions) {
             latch.countDown();
-//            System.out.println("Assigned");
+            //            System.out.println("Assigned");
           }
         });
     Awaitility.await()
@@ -100,7 +101,7 @@ public class KafkaesqueConsumer<Key, Value> {
               }
               final boolean assigned = latch.getCount() == 0;
               if (assigned) {
-//                System.out.println("Resetting the offset to beginning");
+                //                System.out.println("Resetting the offset to beginning");
                 consumer.seekToBeginning(consumer.assignment());
               }
               return assigned;
@@ -116,7 +117,7 @@ public class KafkaesqueConsumer<Key, Value> {
     final List<ConsumerRecord<Key, Value>> readMessages = new ArrayList<>();
     try {
       final AtomicInteger emptyCycles = new AtomicInteger(emptyPollsCount);
-//      System.out.println("Empty cycles to await: " + emptyPollsCount);
+      //      System.out.println("Empty cycles to await: " + emptyPollsCount);
       Awaitility.await()
           .atMost(interval, timeUnit)
           .pollInterval(emptyPollsInterval, emptyPollsTimeUnit)
@@ -124,8 +125,9 @@ public class KafkaesqueConsumer<Key, Value> {
               () -> {
                 if (isEmptyPollAfterSomeMessagesWereRead(readMessages)) {
                   final int remainingCycles = emptyCycles.decrementAndGet();
-//                  System.out.println("Remaining empty cycles: " + remainingCycles);
-//                  System.out.println(System.currentTimeMillis());
+                  //                  System.out.println("Remaining empty cycles: " +
+                  // remainingCycles);
+                  //                  System.out.println(System.currentTimeMillis());
                   return remainingCycles == 0;
                 }
                 return false;
@@ -147,14 +149,15 @@ public class KafkaesqueConsumer<Key, Value> {
       throw new KafkaesqueConsumerPollException("Error during the poll operation", ex);
     }
   }
-  
-  private boolean isEmptyPollAfterSomeMessagesWereRead(List<ConsumerRecord<Key, Value>> readMessages) {
-    return  readNewMessages(readMessages) == 0 && !readMessages.isEmpty();
+
+  private boolean isEmptyPollAfterSomeMessagesWereRead(
+      List<ConsumerRecord<Key, Value>> readMessages) {
+    return readNewMessages(readMessages) == 0 && !readMessages.isEmpty();
   }
-  
+
   private int readNewMessages(List<ConsumerRecord<Key, Value>> readMessages) {
     final ConsumerRecords<Key, Value> polled = kafkaConsumer.poll(Duration.ofMillis(50L));
-//    System.out.println("Polled: " + polled.count());
+    //    System.out.println("Polled: " + polled.count());
     final List<ConsumerRecord<Key, Value>> newMessages = new ArrayList<>();
     polled.records(creationInfo.getTopic()).forEach(newMessages::add);
     if (!newMessages.isEmpty()) {
@@ -186,12 +189,17 @@ public class KafkaesqueConsumer<Key, Value> {
     private final String topic;
     private final Deserializer<Key> keyDeserializer;
     private final Deserializer<Value> valueDeserializer;
+    private final Properties consumerProperties;
 
     DelegateCreationInfo(
-        String topic, Deserializer<Key> keyDeserializer, Deserializer<Value> valueDeserializer) {
+        String topic,
+        Deserializer<Key> keyDeserializer,
+        Deserializer<Value> valueDeserializer,
+        Properties consumerProperties) {
       this.topic = topic;
       this.keyDeserializer = keyDeserializer;
       this.valueDeserializer = valueDeserializer;
+      this.consumerProperties = consumerProperties;
     }
 
     public String getTopic() {
@@ -204,6 +212,10 @@ public class KafkaesqueConsumer<Key, Value> {
 
     public Deserializer<Value> getValueDeserializer() {
       return valueDeserializer;
+    }
+
+    public Properties getConsumerProperties() {
+      return consumerProperties;
     }
   }
 }

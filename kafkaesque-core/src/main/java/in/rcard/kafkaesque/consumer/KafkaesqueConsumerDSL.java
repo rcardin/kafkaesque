@@ -1,6 +1,10 @@
 package in.rcard.kafkaesque.consumer;
 
+import in.rcard.kafkaesque.config.TypesafeKafkaesqueConfigLoader;
 import in.rcard.kafkaesque.consumer.KafkaesqueConsumer.DelegateCreationInfo;
+
+import java.io.File;
+import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 import org.apache.kafka.common.serialization.Deserializer;
 
@@ -29,6 +33,8 @@ public class KafkaesqueConsumerDSL<Key, Value> {
   private long emptyPollsInterval = 50L;
   private TimeUnit emptyPollsTimeUnit = TimeUnit.MILLISECONDS;
 
+  private String configurationFilePath;
+  
   private KafkaesqueConsumerDSL(String brokerUrl) {
     this.brokerUrl = brokerUrl;
   }
@@ -112,7 +118,9 @@ public class KafkaesqueConsumerDSL<Key, Value> {
   public AssertionsOnConsumedDelegate<Key, Value> expectingConsumed() {
     validateInputs();
     final DelegateCreationInfo<Key, Value> creationInfo =
-        new DelegateCreationInfo<>(topic, keyDeserializer, valueDeserializer);
+        new DelegateCreationInfo<>(
+            topic, keyDeserializer, valueDeserializer, buildConfigurationProperties());
+
     final KafkaesqueConsumer<Key, Value> consumer =
         new KafkaesqueConsumer<>(
             brokerUrl,
@@ -128,6 +136,7 @@ public class KafkaesqueConsumerDSL<Key, Value> {
   private void validateInputs() {
     validateTopic();
     validateDeserializers();
+    validateConfigurationFilePath();
   }
 
   private void validateTopic() {
@@ -140,5 +149,29 @@ public class KafkaesqueConsumerDSL<Key, Value> {
     if (keyDeserializer == null || valueDeserializer == null) {
       throw new IllegalArgumentException("The deserializers cannot be null");
     }
+  }
+
+  private void validateConfigurationFilePath() {
+    if (configurationFilePath != null) {
+      final File file = new File("src/test/resources" + configurationFilePath);
+      if (!file.exists()) {
+        throw new IllegalArgumentException(
+            String.format("The configuration file '%s' does not exist", configurationFilePath));
+      }
+    }
+  }
+
+  private Properties buildConfigurationProperties() {
+    if (configurationFilePath != null) {
+      return new TypesafeKafkaesqueConfigLoader(configurationFilePath)
+          .loadConsumerConfig()
+          .toProperties();
+    }
+    return new Properties();
+  }
+
+  public KafkaesqueConsumerDSL<Key, Value> withConfiguration(String path) {
+    this.configurationFilePath = path;
+    return this;
   }
 }
