@@ -125,6 +125,6 @@ class KafkaesqueProducerIntegrationTest {
             brokerUrl,
             Duration.of(200L, ChronoUnit.MILLIS),
             new DelegateCreationInfo<>(
-                topic, STRING_SERIALIZER, STRING_SERIALIZER, null /* TODO */));
+                topic, STRING_SERIALIZER, STRING_SERIALIZER, new Properties()));
   }
 }
