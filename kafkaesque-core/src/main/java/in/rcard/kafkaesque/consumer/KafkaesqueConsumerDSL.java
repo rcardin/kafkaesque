@@ -9,8 +9,9 @@ import java.util.concurrent.TimeUnit;
 import org.apache.kafka.common.serialization.Deserializer;
 
 /**
- * Creates instances of {@link KafkaesqueConsumer}.<br>
- * There are defaults for some properties. In details, we have the following:
+ * Creates instances of {@link KafkaesqueConsumer}.
+ *
+ * <p>There are defaults for some properties. In details, we have the following:
  *
  * <ol>
  *   <li>{@code waitingAtMost(200L, TimeUnit.MILLISECONDS)}
@@ -53,6 +54,7 @@ public class KafkaesqueConsumerDSL<Key, Value> {
    * Sets the topic to read from. This information is mandatory.
    *
    * @param topic The topic name
+   * @return This instance
    */
   public KafkaesqueConsumerDSL<Key, Value> fromTopic(String topic) {
     this.topic = topic;
@@ -64,6 +66,7 @@ public class KafkaesqueConsumerDSL<Key, Value> {
    *
    * @param keyDeserializer The key deserializer
    * @param valueDeserializer The value deserializer
+   * @return This instance
    */
   public KafkaesqueConsumerDSL<Key, Value> withDeserializers(
       Deserializer<Key> keyDeserializer, Deserializer<Value> valueDeserializer) {
@@ -78,6 +81,7 @@ public class KafkaesqueConsumerDSL<Key, Value> {
    *
    * @param interval Time interval
    * @param unit Unit of the time interval
+   * @return This instance
    */
   public KafkaesqueConsumerDSL<Key, Value> waitingAtMost(long interval, TimeUnit unit) {
     this.interval = interval;
@@ -93,6 +97,7 @@ public class KafkaesqueConsumerDSL<Key, Value> {
    * @param count Number of empty polls
    * @param waitingInterval The interval to wait between two poll operations
    * @param waitingTimeUnit The time unit of the above interval
+   * @return This instance
    */
   public KafkaesqueConsumerDSL<Key, Value> waitingEmptyPolls(
       int count, long waitingInterval, TimeUnit waitingTimeUnit) {
