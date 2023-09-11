@@ -54,13 +54,8 @@ class AfterEachAssertionsTest {
   void assertingShouldThrowAnAssertionErrorIfTheConsumerAssertionFails() {
     assertThatThrownBy(() -> afterEachAssertions.asserting(pr -> assertThat(pr).isNull()))
         .isInstanceOf(AssertionError.class)
-        .hasMessage(
-            "\n"
-                + "Expecting:\n"
-                + " <ProducerRecord(topic=topic, partition=null, headers=RecordHeaders(headers = [], isReadOnly = false), key=key, value=value, timestamp=null)>\n"
-                + "to be equal to:\n"
-                + " <null>\n"
-                + "but was not.");
+        .hasMessage("\nexpected: null\n" +
+                        " but was: ProducerRecord(topic=topic, partition=null, headers=RecordHeaders(headers = [], isReadOnly = false), key=key, value=value, timestamp=null)");
   }
   
   @Test

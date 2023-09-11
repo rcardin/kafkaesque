@@ -57,7 +57,7 @@ class AfterAllAssertionsTest {
                 afterAllAssertions.asserting(
                     producerRecords -> assertThat(producerRecords).hasSize(1)))
         .isInstanceOf(AssertionError.class)
-        .hasMessage("\n" + "Expected size:<1> but was:<0> in:\n" + "<[]>");
+        .hasMessage("\n" + "Expected size: 1 but was: 0 in:\n" + "[]");
   }
   
   @Test

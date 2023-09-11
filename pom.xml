@@ -7,7 +7,7 @@
 
   <groupId>in.rcard</groupId>
   <artifactId>kafkaesque</artifactId>
-  <version>0.0.2-SNAPSHOT</version>
+  <version>0.1.0-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>Kafkaesque</name>
@@ -34,12 +34,18 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <kafka.version>2.5.0</kafka.version>
-    <junit.jupiter.version>5.6.2</junit.jupiter.version>
-    <testcontainers.version>1.16.0</testcontainers.version>
-    <typesafe.config.version>1.4.2</typesafe.config.version>
     <maven.compiler.source>11</maven.compiler.source>
     <maven.compiler.target>11</maven.compiler.target>
+    <kafka.version>3.5.0</kafka.version>
+    <junit.jupiter.version>5.10.0</junit.jupiter.version>
+    <testcontainers.version>1.19.0</testcontainers.version>
+    <typesafe.config.version>1.4.2</typesafe.config.version>
+    <commons-lang3.version>3.13.0</commons-lang3.version>
+    <reflections.version>0.10.2</reflections.version>
+    <hamcrest.version>2.2</hamcrest.version>
+    <awaitility.version>4.2.0</awaitility.version>
+    <mockito-core.version>5.5.0</mockito-core.version>
+    <assertj-core.version>3.24.2</assertj-core.version>
   </properties>
 
   <modules>
@@ -56,22 +62,22 @@
       <dependency>
         <groupId>org.apache.commons</groupId>
         <artifactId>commons-lang3</artifactId>
-        <version>3.11</version>
+        <version>${commons-lang3.version}</version>
       </dependency>
       <dependency>
         <groupId>org.reflections</groupId>
         <artifactId>reflections</artifactId>
-        <version>0.9.12</version>
+        <version>${reflections.version}</version>
       </dependency>
       <dependency>
         <groupId>org.hamcrest</groupId>
         <artifactId>hamcrest</artifactId>
-        <version>2.2</version>
+        <version>${hamcrest.version}</version>
       </dependency>
       <dependency>
         <groupId>org.awaitility</groupId>
         <artifactId>awaitility</artifactId>
-        <version>4.0.3</version>
+        <version>${awaitility.version}</version>
       </dependency>
       <dependency>
         <groupId>com.typesafe</groupId>
@@ -87,19 +93,37 @@
       <dependency>
         <groupId>org.assertj</groupId>
         <artifactId>assertj-core</artifactId>
-        <version>3.16.1</version>
+        <version>${assertj-core.version}</version>
         <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>org.mockito</groupId>
         <artifactId>mockito-core</artifactId>
-        <version>3.4.6</version>
+        <version>${mockito-core.version}</version>
         <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>org.mockito</groupId>
         <artifactId>mockito-junit-jupiter</artifactId>
-        <version>3.4.6</version>
+        <version>${mockito-core.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.testcontainers</groupId>
+        <artifactId>testcontainers</artifactId>
+        <version>${testcontainers.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.testcontainers</groupId>
+        <artifactId>junit-jupiter</artifactId>
+        <version>${testcontainers.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.testcontainers</groupId>
+        <artifactId>kafka</artifactId>
+        <version>${testcontainers.version}</version>
         <scope>test</scope>
       </dependency>
     </dependencies>
@@ -113,8 +137,8 @@
           <artifactId>maven-compiler-plugin</artifactId>
           <version>3.8.0</version>
           <configuration>
-            <source>11</source>
-            <target>11</target>
+            <source>${maven.compiler.source}</source>
+            <target>${maven.compiler.target}</target>
           </configuration>
         </plugin>
         <plugin>
@@ -135,7 +159,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-surefire-plugin</artifactId>
-          <version>3.0.0-M5</version>
+          <version>3.1.2</version>
         </plugin>
       </plugins>
     </pluginManagement>
