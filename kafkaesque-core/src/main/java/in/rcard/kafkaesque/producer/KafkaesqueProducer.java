@@ -104,7 +104,7 @@ public final class KafkaesqueProducer<Key, Value> {
   }
 
   /**
-   * A record to a producer can send to a Kafka topic.
+   * A record a producer can send to a Kafka topic.
    *
    * @param <Key> The type of the key
    * @param <Value> The type of the value
@@ -180,7 +180,7 @@ public final class KafkaesqueProducer<Key, Value> {
     }
   }
 
-  /** An header to add to a message sent to a Kafka topic. */
+  /** A header to add to a message sent to a Kafka topic. */
   public static class Header {
     private final String key;
     private final byte[] value;
@@ -190,6 +190,13 @@ public final class KafkaesqueProducer<Key, Value> {
       this.value = value;
     }
 
+    /**
+     * Creates a new header with the given key and value.
+     * @param key The key of the header
+     * @param value The value of the header
+     * @return The new header
+     * @throws IllegalArgumentException If the key or the value are null or empty
+     */
     public static Header header(String key, String value) {
       if (key == null || key.isEmpty()) {
         throw new IllegalArgumentException("The key of the header cannot be null or empty");
@@ -200,6 +207,13 @@ public final class KafkaesqueProducer<Key, Value> {
       return new Header(key, value.getBytes());
     }
 
+    /**
+     * Creates a new header with the given key and value.
+     * @param key The key of the header
+     * @param value The value of the header
+     * @return The new header
+     * @throws IllegalArgumentException If the key or the value are null or empty
+     */
     public static Header header(String key, byte[] value) {
       if (key == null || key.isEmpty()) {
         throw new IllegalArgumentException("The key of the header cannot be null or empty");
