@@ -122,14 +122,29 @@ public final class KafkaesqueProducer<Key, Value> {
     }
 
     public static <Key, Value> Record<Key, Value> of(Key key, Value value, Header... headers) {
+      validateKey(key);
       return new Record<>(key, value, List.of(headers));
     }
 
+    private static <Key> void validateKey(Key key) {
+      if (key == null) {
+        throw new IllegalArgumentException("The key of the record cannot be null");
+      }
+    }
+
     public static <Key, Value> Record<Key, Value> of(ProducerRecord<Key, Value> producerRecord) {
+      validateProducerRecord(producerRecord);
       return new Record<>(
           producerRecord.key(),
           producerRecord.value(),
           adaptKafkaHeader(producerRecord.headers().toArray()));
+    }
+
+    private static <Key, Value> void validateProducerRecord(
+        ProducerRecord<Key, Value> producerRecord) {
+      if (producerRecord == null) {
+        throw new IllegalArgumentException("The producer record cannot be null");
+      }
     }
 
     private static List<Header> adaptKafkaHeader(org.apache.kafka.common.header.Header[] array) {
@@ -139,9 +154,16 @@ public final class KafkaesqueProducer<Key, Value> {
     }
 
     public ProducerRecord<Key, Value> toPr(String topic) {
+      validateTopic(topic);
       final ProducerRecord<Key, Value> producerRecord = new ProducerRecord<>(topic, key, value);
       addHeaders(producerRecord);
       return producerRecord;
+    }
+
+    private static void validateTopic(String topic) {
+      if (topic == null || topic.isEmpty()) {
+        throw new IllegalArgumentException("The topic cannot be null or empty");
+      }
     }
 
     private void addHeaders(ProducerRecord<Key, Value> producerRecord) {
@@ -149,20 +171,14 @@ public final class KafkaesqueProducer<Key, Value> {
       headers.forEach(h -> kafkaHeaders.add(h.toKafkaHeader()));
     }
 
-    public Key getKey() {
-      return key;
-    }
-
-    public Value getValue() {
-      return value;
-    }
-
     @Override
     public boolean equals(Object o) {
       if (this == o) return true;
       if (o == null || getClass() != o.getClass()) return false;
       Record<?, ?> record = (Record<?, ?>) o;
-      return Objects.equals(key, record.key) && Objects.equals(value, record.value) && Objects.equals(headers, record.headers);
+      return Objects.equals(key, record.key)
+          && Objects.equals(value, record.value)
+          && Objects.equals(headers, record.headers);
     }
 
     @Override
@@ -172,11 +188,7 @@ public final class KafkaesqueProducer<Key, Value> {
 
     @Override
     public String toString() {
-      return "Record{" +
-              "key=" + key +
-              ", value=" + value +
-              ", headers=" + headers +
-              '}';
+      return "Record{" + "key=" + key + ", value=" + value + ", headers=" + headers + '}';
     }
   }
 
@@ -192,6 +204,7 @@ public final class KafkaesqueProducer<Key, Value> {
 
     /**
      * Creates a new header with the given key and value.
+     *
      * @param key The key of the header
      * @param value The value of the header
      * @return The new header
@@ -209,6 +222,7 @@ public final class KafkaesqueProducer<Key, Value> {
 
     /**
      * Creates a new header with the given key and value.
+     *
      * @param key The key of the header
      * @param value The value of the header
      * @return The new header
@@ -245,10 +259,7 @@ public final class KafkaesqueProducer<Key, Value> {
 
     @Override
     public String toString() {
-      return "Header{" +
-              "key='" + key + '\'' +
-              ", value=" + Arrays.toString(value) +
-              '}';
+      return "Header{" + "key='" + key + '\'' + ", value=" + Arrays.toString(value) + '}';
     }
   }
 
