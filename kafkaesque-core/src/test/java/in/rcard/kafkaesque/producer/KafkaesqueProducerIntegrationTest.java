@@ -1,8 +1,10 @@
 package in.rcard.kafkaesque.producer;
 
+import static in.rcard.kafkaesque.producer.KafkaesqueProducer.Header.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import in.rcard.kafkaesque.producer.KafkaesqueProducer.DelegateCreationInfo;
+import in.rcard.kafkaesque.producer.KafkaesqueProducer.Header;
 import in.rcard.kafkaesque.producer.KafkaesqueProducer.Record;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
@@ -17,6 +19,7 @@ import org.apache.kafka.clients.consumer.ConsumerRebalanceListener;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.TopicPartition;
+import org.apache.kafka.common.header.internals.RecordHeader;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.AfterEach;
@@ -94,6 +97,23 @@ class KafkaesqueProducerIntegrationTest {
 
     final ConsumerRecords<String, String> polled = consumer.poll(Duration.ofMinutes(1L));
     assertThat(polled).hasSize(2);
+  }
+
+  @Test
+  void sendRecordsWithHeadersShouldSendARecordToKafkaTopic() {
+    subscribeConsumerToTopic(TEST_TOPIC);
+    setUpKafkaesqueProducer(TEST_TOPIC);
+
+    producer.sendRecord(Record.of("key1", "value1", header("hKey", "hValue")));
+
+    final ConsumerRecords<String, String> polled = consumer.poll(Duration.ofMinutes(1L));
+    assertThat(polled)
+            .hasSize(1)
+            .first()
+            .hasFieldOrPropertyWithValue("key", "key1")
+            .hasFieldOrPropertyWithValue("value", "value1")
+            .extracting(cr -> cr.headers().lastHeader("hKey"))
+            .isEqualTo(new RecordHeader("hKey", "hValue".getBytes()));
   }
 
   private void subscribeConsumerToTopic(String topic) {

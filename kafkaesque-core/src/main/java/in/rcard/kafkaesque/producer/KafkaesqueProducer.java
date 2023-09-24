@@ -1,18 +1,20 @@
 package in.rcard.kafkaesque.producer;
 
 import java.time.Duration;
-import java.util.List;
-import java.util.Objects;
-import java.util.Properties;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
+import org.apache.kafka.common.header.Header;
+import org.apache.kafka.common.header.Headers;
+import org.apache.kafka.common.header.internals.RecordHeader;
 import org.apache.kafka.common.serialization.Serializer;
 
 /**
@@ -102,7 +104,7 @@ public final class KafkaesqueProducer<Key, Value> {
   }
 
   /**
-   * A record to a producer can send to a Kafka topic.
+   * A record a producer can send to a Kafka topic.
    *
    * @param <Key> The type of the key
    * @param <Value> The type of the value
@@ -111,51 +113,153 @@ public final class KafkaesqueProducer<Key, Value> {
     private final Key key;
     private final Value value;
 
-    private Record(Key key, Value value) {
+    private final List<Header> headers;
+
+    private Record(Key key, Value value, List<Header> headers) {
       this.key = key;
       this.value = value;
+      this.headers = headers;
     }
 
-    public static <Key, Value> Record<Key, Value> of(Key key, Value value) {
-      return new Record<>(key, value);
+    public static <Key, Value> Record<Key, Value> of(Key key, Value value, Header... headers) {
+      validateKey(key);
+      return new Record<>(key, value, List.of(headers));
+    }
+
+    private static <Key> void validateKey(Key key) {
+      if (key == null) {
+        throw new IllegalArgumentException("The key of the record cannot be null");
+      }
     }
 
     public static <Key, Value> Record<Key, Value> of(ProducerRecord<Key, Value> producerRecord) {
-      return new Record<>(producerRecord.key(), producerRecord.value());
+      validateProducerRecord(producerRecord);
+      return new Record<>(
+          producerRecord.key(),
+          producerRecord.value(),
+          adaptKafkaHeader(producerRecord.headers().toArray()));
+    }
+
+    private static <Key, Value> void validateProducerRecord(
+        ProducerRecord<Key, Value> producerRecord) {
+      if (producerRecord == null) {
+        throw new IllegalArgumentException("The producer record cannot be null");
+      }
+    }
+
+    private static List<Header> adaptKafkaHeader(org.apache.kafka.common.header.Header[] array) {
+      return Stream.of(array)
+          .map(kafkaHeader -> Header.header(kafkaHeader.key(), kafkaHeader.value()))
+          .collect(Collectors.toList());
     }
 
     public ProducerRecord<Key, Value> toPr(String topic) {
-      return new ProducerRecord<>(topic, key, value);
+      validateTopic(topic);
+      final ProducerRecord<Key, Value> producerRecord = new ProducerRecord<>(topic, key, value);
+      addHeaders(producerRecord);
+      return producerRecord;
     }
 
-    public Key getKey() {
-      return key;
+    private static void validateTopic(String topic) {
+      if (topic == null || topic.isEmpty()) {
+        throw new IllegalArgumentException("The topic cannot be null or empty");
+      }
     }
 
-    public Value getValue() {
-      return value;
+    private void addHeaders(ProducerRecord<Key, Value> producerRecord) {
+      final Headers kafkaHeaders = producerRecord.headers();
+      headers.forEach(h -> kafkaHeaders.add(h.toKafkaHeader()));
     }
 
     @Override
     public boolean equals(Object o) {
-      if (this == o) {
-        return true;
-      }
-      if (o == null || getClass() != o.getClass()) {
-        return false;
-      }
+      if (this == o) return true;
+      if (o == null || getClass() != o.getClass()) return false;
       Record<?, ?> record = (Record<?, ?>) o;
-      return Objects.equals(key, record.key) && Objects.equals(value, record.value);
+      return Objects.equals(key, record.key)
+          && Objects.equals(value, record.value)
+          && Objects.equals(headers, record.headers);
     }
 
     @Override
     public int hashCode() {
-      return Objects.hash(key, value);
+      return Objects.hash(key, value, headers);
     }
 
     @Override
     public String toString() {
-      return "Record{" + "key=" + key + ", value=" + value + '}';
+      return "Record{" + "key=" + key + ", value=" + value + ", headers=" + headers + '}';
+    }
+  }
+
+  /** A header to add to a message sent to a Kafka topic. */
+  public static class Header {
+    private final String key;
+    private final byte[] value;
+
+    private Header(String key, byte[] value) {
+      this.key = key;
+      this.value = value;
+    }
+
+    /**
+     * Creates a new header with the given key and value.
+     *
+     * @param key The key of the header
+     * @param value The value of the header
+     * @return The new header
+     * @throws IllegalArgumentException If the key or the value are null or empty
+     */
+    public static Header header(String key, String value) {
+      if (key == null || key.isEmpty()) {
+        throw new IllegalArgumentException("The key of the header cannot be null or empty");
+      }
+      if (value == null || value.isEmpty()) {
+        throw new IllegalArgumentException("The value of the header cannot be null or empty");
+      }
+      return new Header(key, value.getBytes());
+    }
+
+    /**
+     * Creates a new header with the given key and value.
+     *
+     * @param key The key of the header
+     * @param value The value of the header
+     * @return The new header
+     * @throws IllegalArgumentException If the key or the value are null or empty
+     */
+    public static Header header(String key, byte[] value) {
+      if (key == null || key.isEmpty()) {
+        throw new IllegalArgumentException("The key of the header cannot be null or empty");
+      }
+      if (value == null || value.length == 0) {
+        throw new IllegalArgumentException("The value of the header cannot be null or empty");
+      }
+      return new Header(key, value);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) return true;
+      if (o == null || getClass() != o.getClass()) return false;
+      Header header = (Header) o;
+      return Objects.equals(key, header.key) && Arrays.equals(value, header.value);
+    }
+
+    @Override
+    public int hashCode() {
+      int result = Objects.hash(key);
+      result = 31 * result + Arrays.hashCode(value);
+      return result;
+    }
+
+    public org.apache.kafka.common.header.Header toKafkaHeader() {
+      return new RecordHeader(key, value);
+    }
+
+    @Override
+    public String toString() {
+      return "Header{" + "key='" + key + '\'' + ", value=" + Arrays.toString(value) + '}';
     }
   }
 
