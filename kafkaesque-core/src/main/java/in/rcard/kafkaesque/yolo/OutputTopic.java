@@ -60,7 +60,7 @@ public class OutputTopic<Key, Value> {
       return headers;
     }
 
-    public List<Header> getHeaders(String key) {
+    public List<Header> headers(String key) {
       return headers.stream()
           .filter(header -> header.getKey().equals(key))
           .collect(Collectors.toList());
