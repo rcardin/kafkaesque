@@ -50,7 +50,7 @@ Kafkaesque
   .<Key, Value>produce()
   .toTopic("topic-name")
   .withDeserializers(keyDeserializer, valueDeserializer)
-  .messages( /* Some list of messages */)
+  .messages( /* Some list of messages, eventually with headers */)
   .waitingAtMostForEachAck(100, MILLISECONDS) // Waiting time for each ack from the broker
   .waitingForTheConsumerAtMost(10, SECONDS) // Waiting time for the consumer to read one / all the messages
   .andAfterAll()
@@ -67,7 +67,7 @@ Kafkaesque
   .<Key, Value>produce()
   .toTopic("topic-name")
   .withDeserializers(keyDeserializer, valueDeserializer)
-  .messages( /* Some list of messages */)
+  .messages( /* Some list of messages, eventually with headers */)
   .waitingAtMostForEachAck(100, MILLISECONDS) // Waiting time for each ack from the broker
   .waitingForTheConsumerAtMost(10, SECONDS) // Waiting time for the consumer to read one / all the messages
   .andAfterEach()

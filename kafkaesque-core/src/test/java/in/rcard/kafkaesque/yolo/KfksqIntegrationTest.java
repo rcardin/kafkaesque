@@ -1,24 +1,24 @@
 package in.rcard.kafkaesque.yolo;
 
+import static in.rcard.kafkaesque.common.Header.header;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 
+import in.rcard.kafkaesque.common.Header;
 import in.rcard.kafkaesque.producer.KafkaesqueProducer;
 import in.rcard.kafkaesque.yolo.OutputTopic.Message;
 import java.time.Duration;
-import java.util.Collection;
-import java.util.List;
-import java.util.Properties;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import org.apache.kafka.clients.consumer.ConsumerConfig;
-import org.apache.kafka.clients.consumer.ConsumerRebalanceListener;
-import org.apache.kafka.clients.consumer.ConsumerRecords;
-import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.clients.consumer.*;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.TopicPartition;
+import org.apache.kafka.common.header.Headers;
+import org.apache.kafka.common.header.internals.RecordHeader;
+import org.apache.kafka.common.header.internals.RecordHeaders;
 import org.apache.kafka.common.serialization.IntegerDeserializer;
 import org.apache.kafka.common.serialization.IntegerSerializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
@@ -34,16 +34,16 @@ import org.testcontainers.utility.DockerImageName;
 
 @Testcontainers
 class KfksqIntegrationTest {
-  
+
   static final String CONSUMER_TEST_TOPIC_1 = "test1";
   static final String PRODUCER_TEST_TOPIC_2 = "test2";
-  
+
   @Container
   private final KafkaContainer kafka =
       new KafkaContainer(DockerImageName.parse("confluentinc/cp-kafka:6.2.1"));
 
   private String brokerUrl;
-  
+
   private KafkaConsumer<Integer, String> consumer;
   private KafkaProducer<Integer, String> producer;
 
@@ -53,7 +53,7 @@ class KfksqIntegrationTest {
     setUpConsumer();
     setUpProducer();
   }
-  
+
   private void setUpConsumer() {
     final Properties props = new Properties();
     props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, brokerUrl);
@@ -67,39 +67,49 @@ class KfksqIntegrationTest {
     props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
     this.consumer = new KafkaConsumer<>(props);
   }
-  
+
   private void setUpProducer() {
     final Properties props = new Properties();
     props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, brokerUrl);
-    props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG,
+    props.put(
+        ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG,
         "org.apache.kafka.common.serialization.IntegerSerializer");
-    props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,
+    props.put(
+        ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,
         "org.apache.kafka.common.serialization.StringSerializer");
     this.producer = new KafkaProducer<>(props);
   }
-  
+
   @AfterEach
   void tearDown() {
     consumer.close();
   }
-  
+
   @Test
   void createInputTopicShouldCreateAStructureThatSendToTheBrokerTheRecords() {
     subscribeConsumerToTopic(PRODUCER_TEST_TOPIC_2);
     final InputTopic<Integer, String> inputTopic =
         Kfksq.at(brokerUrl)
-            .createInputTopic(PRODUCER_TEST_TOPIC_2, new IntegerSerializer(), new StringSerializer());
+            .createInputTopic(
+                PRODUCER_TEST_TOPIC_2, new IntegerSerializer(), new StringSerializer());
+    final Header header = header("hKey", "hValue");
     inputTopic.pipeRecordsList(
         List.of(
-            KafkaesqueProducer.Record.of(100, "One hundred"),
-            KafkaesqueProducer.Record.of(200, "Two hundred")
-        )
-    );
-    final ConsumerRecords<Integer, String> polled =
-        consumer.poll(Duration.ofMinutes(1L));
-    assertThat(polled).hasSize(2);
+            KafkaesqueProducer.Record.of(100, "One hundred", header),
+            KafkaesqueProducer.Record.of(200, "Two hundred", header)));
+
+    final ConsumerRecords<Integer, String> polled = consumer.poll(Duration.ofMinutes(1L));
+    final Iterable<ConsumerRecord<Integer, String>> actualConsumerRecords =
+        polled.records(PRODUCER_TEST_TOPIC_2);
+
+    Headers kafkaHeaders = new RecordHeaders();
+    kafkaHeaders.add(new RecordHeader("hKey", "hValue".getBytes()));
+    assertThat(actualConsumerRecords)
+        .flatExtracting("key", "value", "headers")
+        .containsExactlyInAnyOrder(
+            100, "One hundred", kafkaHeaders, 200, "Two hundred", kafkaHeaders);
   }
-  
+
   private void subscribeConsumerToTopic(String topic) {
     CountDownLatch latch = new CountDownLatch(1);
     consumer.subscribe(
@@ -107,13 +117,13 @@ class KfksqIntegrationTest {
         new ConsumerRebalanceListener() {
           @Override
           public void onPartitionsRevoked(Collection<TopicPartition> partitions) {}
-          
+
           @Override
           public void onPartitionsAssigned(Collection<TopicPartition> partitions) {
             latch.countDown();
           }
         });
-    
+
     Awaitility.await()
         .atMost(1, TimeUnit.MINUTES)
         .until(
@@ -122,18 +132,35 @@ class KfksqIntegrationTest {
               return latch.getCount() == 0;
             });
   }
-  
+
   @Test
   void createOutputTopicShouldCreateAStructureTheReadsFromTheBrokerTheMessages() {
-    producer.send(new ProducerRecord<>(CONSUMER_TEST_TOPIC_1, 300, "Three hundred"));
-    producer.send(new ProducerRecord<>(CONSUMER_TEST_TOPIC_1, 400, "Four hundred"));
+    final Header header = header("hKey", "hValue".getBytes());
+    final ProducerRecord<Integer, String> firstRecord =
+        producerRecord(300, "Three hundred", header);
+    final ProducerRecord<Integer, String> secondRecord =
+        producerRecord(400, "Four hundred", header);
+    secondRecord.headers().add("anotherHKey", "anotherHValue".getBytes());
+    producer.send(firstRecord);
+    producer.send(secondRecord);
+
     final OutputTopic<Integer, String> outputTopic =
         Kfksq.at(brokerUrl)
             .createOutputTopic(
                 CONSUMER_TEST_TOPIC_1, new IntegerDeserializer(), new StringDeserializer());
-    final List<Message<Integer, String>> messages = outputTopic.readRecordsToList();
-    assertThat(messages)
-        .extracting("value")
-        .containsExactlyInAnyOrder("Three hundred", "Four hundred");
+    final List<Message<Integer, String>> actualMessages = outputTopic.readRecordsToList();
+
+    assertThat(actualMessages)
+        .extracting("value", "headers")
+        .containsExactlyInAnyOrder(
+            tuple("Three hundred", List.of(header)), tuple("Four hundred", List.of(header)));
+  }
+
+  private ProducerRecord<Integer, String> producerRecord(
+      int x, String Three_hundred, Header... headers) {
+    final ProducerRecord<Integer, String> producerRecord =
+        new ProducerRecord<>(CONSUMER_TEST_TOPIC_1, x, Three_hundred);
+    Arrays.stream(headers).forEach(header -> producerRecord.headers().add(header.toKafkaHeader()));
+    return producerRecord;
   }
 }
