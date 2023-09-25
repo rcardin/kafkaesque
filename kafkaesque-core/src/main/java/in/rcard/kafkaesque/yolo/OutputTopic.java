@@ -1,10 +1,11 @@
 package in.rcard.kafkaesque.yolo;
 
-import in.rcard.kafkaesque.consumer.KafkaesqueConsumerDSL;
+import static in.rcard.kafkaesque.common.Header.header;
 
+import in.rcard.kafkaesque.common.Header;
+import in.rcard.kafkaesque.consumer.KafkaesqueConsumerDSL;
 import java.util.*;
 import java.util.stream.Collectors;
-
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.header.Headers;
 
@@ -43,7 +44,7 @@ public class OutputTopic<Key, Value> {
 
     private static ArrayList<Header> adaptKafkaHeaders(Headers kafkaHeaders) {
       final ArrayList<Header> headersList = new ArrayList<>();
-      kafkaHeaders.forEach(header -> headersList.add(new Header(header.key(), header.value())));
+      kafkaHeaders.forEach(header -> headersList.add(header(header.key(), header.value())));
       return headersList;
     }
 
@@ -91,47 +92,6 @@ public class OutputTopic<Key, Value> {
     @Override
     public String toString() {
       return "Message{" + "key=" + key + ", value=" + value + '}';
-    }
-  }
-
-  public static class Header {
-    private final String key;
-    private final byte[] value;
-
-    Header(String key, byte[] value) {
-      this.key = key;
-      this.value = value;
-    }
-
-    public String getKey() {
-      return key;
-    }
-
-    public byte[] getValue() {
-      return value;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-      if (this == o) return true;
-      if (o == null || getClass() != o.getClass()) return false;
-      Header header = (Header) o;
-      return Objects.equals(key, header.key) && Arrays.equals(value, header.value);
-    }
-
-    @Override
-    public int hashCode() {
-      int result = Objects.hash(key);
-      result = 31 * result + Arrays.hashCode(value);
-      return result;
-    }
-
-    @Override
-    public String toString() {
-      return "Header{" +
-              "key='" + key + '\'' +
-              ", value=" + Arrays.toString(value) +
-              '}';
     }
   }
 }

@@ -4,7 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.*;
 
-import in.rcard.kafkaesque.producer.KafkaesqueProducer.Header;
+import in.rcard.kafkaesque.common.Header;
 import java.util.Collections;
 import java.util.List;
 import org.apache.kafka.clients.producer.ProducerRecord;

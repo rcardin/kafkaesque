@@ -1,10 +1,9 @@
 package in.rcard.kafkaesque.producer;
 
-import static in.rcard.kafkaesque.producer.KafkaesqueProducer.Header.*;
+import static in.rcard.kafkaesque.common.Header.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import in.rcard.kafkaesque.producer.KafkaesqueProducer.DelegateCreationInfo;
-import in.rcard.kafkaesque.producer.KafkaesqueProducer.Header;
 import in.rcard.kafkaesque.producer.KafkaesqueProducer.Record;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;

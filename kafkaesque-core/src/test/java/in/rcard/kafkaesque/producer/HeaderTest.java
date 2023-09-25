@@ -1,10 +1,10 @@
 package in.rcard.kafkaesque.producer;
 
-import static in.rcard.kafkaesque.producer.KafkaesqueProducer.Header.header;
+import static in.rcard.kafkaesque.common.Header.header;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import in.rcard.kafkaesque.producer.KafkaesqueProducer.Header;
+import in.rcard.kafkaesque.common.Header;
 import org.junit.jupiter.api.Test;
 
 class HeaderTest {
