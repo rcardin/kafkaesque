@@ -12,6 +12,10 @@ public class InputTopic<Key, Value> {
     this.dsl = dsl;
   }
 
+  public void pipeRecords(Record<Key, Value>... records) {
+    pipeRecordsList(List.of(records));
+  }
+
   public void pipeRecordsList(List<Record<Key, Value>> records) {
     dsl.messages(records).andAfterAll().asserting(producerRecords -> {});
   }
