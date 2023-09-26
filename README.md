@@ -101,7 +101,7 @@ The _Kafkaesque_ library contains many submodules. The `kafkaesque-core` module 
 <dependency>
   <groupId>in.rcard</groupId>
   <artifactId>kafkaesque-core</artifactId>
-  <version>0.1.0</version>
+  <version>0.2.0</version>
   <scope>test</scope>
 </dependency>
 ```
