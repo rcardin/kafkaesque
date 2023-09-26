@@ -140,7 +140,6 @@ class KfksqIntegrationTest {
         producerRecord(300, "Three hundred", header);
     final ProducerRecord<Integer, String> secondRecord =
         producerRecord(400, "Four hundred", header);
-    secondRecord.headers().add("anotherHKey", "anotherHValue".getBytes());
     producer.send(firstRecord);
     producer.send(secondRecord);
 
