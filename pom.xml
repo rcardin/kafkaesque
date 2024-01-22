@@ -40,7 +40,7 @@
     <junit.jupiter.version>5.10.0</junit.jupiter.version>
     <testcontainers.version>1.19.3</testcontainers.version>
     <typesafe.config.version>1.4.3</typesafe.config.version>
-    <commons-lang3.version>3.13.0</commons-lang3.version>
+    <commons-lang3.version>3.14.0</commons-lang3.version>
     <reflections.version>0.10.2</reflections.version>
     <hamcrest.version>2.2</hamcrest.version>
     <awaitility.version>4.2.0</awaitility.version>
