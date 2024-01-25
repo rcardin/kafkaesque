@@ -44,7 +44,7 @@
     <reflections.version>0.10.2</reflections.version>
     <hamcrest.version>2.2</hamcrest.version>
     <awaitility.version>4.2.0</awaitility.version>
-    <mockito-core.version>5.9.0</mockito-core.version>
+    <mockito-core.version>5.10.0</mockito-core.version>
     <assertj-core.version>3.25.2</assertj-core.version>
   </properties>
 
